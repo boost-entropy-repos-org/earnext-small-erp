@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.dongxibao.erp.mapper.common.AttachAssociationMapper">
+
+    <resultMap type="top.dongxibao.erp.entity.common.AttachAssociation" id="BaseResultMap">
+        <result property="id" column="id"/>
+        <result property="associationId" column="association_id"/>
+        <result property="realAttachName" column="real_attach_name"/>
+        <result property="newAttachName" column="new_attach_name"/>
+        <result property="attachPath" column="attach_path"/>
+        <result property="attachType" column="attach_type"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectFields">
+         a.attach_type,a.id, a.association_id, a.real_attach_name, a.new_attach_name, a.attach_path, a.del_flag,
+         a.remark,
+         a.create_by, a.create_time, a.update_by, a.update_time
+    </sql>
+
+    <select id="selectByCondition" parameterType="top.dongxibao.erp.entity.common.AttachAssociation" resultMap="BaseResultMap">
+        SELECT
+        <include refid="selectFields"/>
+        FROM attach_association a
+        <where>
+            <if test="associationId != null">
+                AND a.association_id = #{associationId}
+            </if>
+            <if test="attachType != null">
+                AND a.attach_type = #{attachType}
+            </if>
+            <if test="beginTime != null"><!-- 开始时间检索 -->
+                AND <![CDATA[ a.create_time >= #{beginTime} ]]>
+            </if>
+            <if test="endTime != null"><!-- 结束时间检索 -->
+                AND <![CDATA[ a.create_time <= #{endTime} ]]>
+            </if>
+            <!-- 数据范围过滤 -->
+            ${dataScope}
+        </where>
+    </select>
+</mapper>

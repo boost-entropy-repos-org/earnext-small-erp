@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.dongxibao.erp.mapper.system.SysUserMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="top.dongxibao.erp.entity.system.SysUser">
+        <result column="id" property="id"/>
+        <result column="dept_id" property="deptId"/>
+        <result column="username" property="username"/>
+        <result column="nick_name" property="nickName"/>
+        <result column="password" property="password"/>
+        <result column="email" property="email"/>
+        <result column="phone" property="phone"/>
+        <result column="sex" property="sex"/>
+        <result column="avatar" property="avatar"/>
+        <result column="status" property="status"/>
+        <result column="del_flag" property="delFlag"/>
+        <result column="create_by" property="createBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="remark" property="remark"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="selectFilds">
+        a.id,
+        a.dept_id, a.username, a.nick_name, a.password, a.email, a.phone, a.sex, a.avatar, a.status, a.del_flag, a.create_by, a.create_time, a.update_by, a.update_time, a.remark
+    </sql>
+    <update id="updateByUsername">
+        UPDATE sys_user
+        SET password = #{password}
+        WHERE username = #{username}
+    </update>
+
+    <select id="selectByCondition" resultMap="BaseResultMap">
+        SELECT
+        <include refid="selectFilds"/>
+        FROM sys_user a
+        <where>
+            <if test="beginTime != null"><!-- 开始时间检索 -->
+                AND <![CDATA[ a.create_time >= #{beginTime} ]]>
+            </if>
+            <if test="endTime != null"><!-- 结束时间检索 -->
+                AND <![CDATA[ a.create_time <= #{endTime} ]]>
+            </if>
+            <!-- 数据范围过滤 -->
+            ${dataScope}
+        </where>
+    </select>
+    <select id="checkSysUser" resultType="top.dongxibao.erp.entity.system.SysUser">
+        SELECT
+        <include refid="selectFilds"/>
+        FROM sys_user a
+        <where>
+            a.username = #{username}
+            <if test="id != null">
+                AND a.id != #{id}
+            </if>
+        </where>
+    </select>
+
+</mapper>

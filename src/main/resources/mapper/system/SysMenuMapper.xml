@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.dongxibao.erp.mapper.system.SysMenuMapper">
+
+    <resultMap type="top.dongxibao.erp.entity.system.SysMenu" id="BaseResultMap">
+        <result property="id" column="id"/>
+        <result property="menuName" column="menu_name"/>
+        <result property="permsCode" column="perms_code"/>
+        <result property="parentId" column="parent_id"/>
+        <result property="orderNum" column="order_num"/>
+        <result property="url" column="url"/>
+        <result property="menuType" column="menu_type"/>
+        <result property="visible" column="visible"/>
+        <result property="icon" column="icon"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectFields">
+         a.id, a.menu_name, a.perms_code, a.parent_id, a.order_num, a.url, a.menu_type, a.visible, a.icon, a.del_flag, a.remark, a.create_by, a.create_time, a.update_by, a.update_time
+    </sql>
+
+    <select id="selectByCondition" parameterType="top.dongxibao.erp.entity.system.SysMenu" resultMap="BaseResultMap">
+        SELECT
+        <include refid="selectFields"/>
+        FROM sys_menu a
+        <where>
+            <if test="beginTime != null"><!-- 开始时间检索 -->
+                AND <![CDATA[ a.create_time >= #{beginTime} ]]>
+            </if>
+            <if test="endTime != null"><!-- 结束时间检索 -->
+                AND <![CDATA[ a.create_time <= #{endTime} ]]>
+            </if>
+            <!-- 数据范围过滤 -->
+            ${dataScope}
+        </where>
+    </select>
+    <select id="selectMenuPermsByUserId" resultType="java.lang.String">
+        select distinct m.perms_code
+		from sys_menu m
+			 left join sys_role_menu rm on m.id = rm.menu_id
+			 left join sys_user_role ur on rm.role_id = ur.role_id
+			 left join sys_role r on r.id = ur.role_id
+		where r.status = '0' and ur.user_id = #{userId}
+    </select>
+    <select id="checkSysMenu" resultType="top.dongxibao.erp.entity.system.SysMenu">
+        SELECT
+        <include refid="selectFields"/>
+        FROM sys_menu a
+        <where>
+            a.perms_code = #{permsCode}
+            <if test="id != null">
+                AND a.id != #{id}
+            </if>
+        </where>
+    </select>
+</mapper>

@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.dongxibao.erp.mapper.system.SysDictTypeMapper">
+
+    <resultMap type="top.dongxibao.erp.entity.system.SysDictType" id="BaseResultMap">
+        <result property="id" column="id"/>
+        <result property="dictName" column="dict_name"/>
+        <result property="dictType" column="dict_type"/>
+        <result property="status" column="status"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectFields">
+         a.id, a.dict_name, a.dict_type, a.status, a.del_flag, a.remark, a.create_by, a.create_time, a.update_by, a.update_time
+    </sql>
+
+    <select id="selectByCondition" parameterType="top.dongxibao.erp.entity.system.SysDictType" resultMap="BaseResultMap">
+        SELECT
+        <include refid="selectFields"/>
+        FROM sys_dict_type a
+        <where>
+            <if test="dictType != null">
+                AND a.dict_type = #{dictType}
+            </if>
+            <if test="beginTime != null"><!-- 开始时间检索 -->
+                AND <![CDATA[ a.create_time >= #{beginTime} ]]>
+            </if>
+            <if test="endTime != null"><!-- 结束时间检索 -->
+                AND <![CDATA[ a.create_time <= #{endTime} ]]>
+            </if>
+            <!-- 数据范围过滤 -->
+            ${dataScope}
+        </where>
+    </select>
+    <select id="checkDictType" resultType="top.dongxibao.erp.entity.system.SysDictType">
+        SELECT
+        <include refid="selectFields"/>
+        FROM sys_dict_type a
+        <where>
+            a.dict_type = #{dictType}
+            <if test="id != null">
+                AND a.id != #{id}
+            </if>
+        </where>
+    </select>
+</mapper>

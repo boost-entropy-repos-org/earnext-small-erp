@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.dongxibao.erp.mapper.system.SysUserRoleMapper">
+
+    <resultMap type="top.dongxibao.erp.entity.system.SysUserRole" id="BaseResultMap">
+        <result property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="roleId" column="role_id"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="remark" column="remark"/>
+        <result property="createBy" column="create_by"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <sql id="selectFields">
+         a.id, a.user_id, a.role_id, a.del_flag, a.remark, a.create_by, a.create_time, a.update_by, a.update_time
+    </sql>
+
+    <select id="selectByCondition" parameterType="top.dongxibao.erp.entity.system.SysUserRole" resultMap="BaseResultMap">
+        SELECT
+        <include refid="selectFields"/>
+        FROM sys_user_role a
+        <where>
+            <if test="beginTime != null"><!-- 开始时间检索 -->
+                AND <![CDATA[ a.create_time >= #{beginTime} ]]>
+            </if>
+            <if test="endTime != null"><!-- 结束时间检索 -->
+                AND <![CDATA[ a.create_time <= #{endTime} ]]>
+            </if>
+            <!-- 数据范围过滤 -->
+            ${dataScope}
+        </where>
+    </select>
+</mapper>
