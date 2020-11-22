@@ -9,12 +9,12 @@ spring:
     type: com.alibaba.druid.pool.DruidDataSource
     driverClassName: com.mysql.cj.jdbc.Driver
     druid:
-#      url: jdbc:mysql://localhost:3306/smallerp?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
-#      username: root
-#      password: root
-      url: jdbc:mysql://qdhuixin.meibu.net:12365/erp_yrmy?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull
-      username: admin
-      password: admin
+      url: jdbc:mysql://localhost:3306/smallerp?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+      username: root
+      password: root
+#      url: jdbc:mysql://qdhuixin.meibu.net:12365/erp_yrmy?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull
+#      username: admin
+#      password: admin
       # 初始连接数
       initialSize: 5
       # 最小连接池数量
@@ -88,3 +88,14 @@ small:
   profile: E:\MyTestCode\small-erp\small-path
   # 获取ip地址开关
   addressEnabled: false
+
+aliyun:
+  oss:
+    endpoint: oss-cn-qingdao.aliyuncs.com # oss对外服务的访问域名
+    accessKeyId: test # 访问身份验证中用到用户标识
+    accessKeySecret: test # 用户用于加密签名字符串和oss用来验证签名字符串的密钥
+    bucketName: dxb-test01 # oss的存储空间
+    maxSize: 10 # 上传文件大小(M)
+    dir:
+      prefix: small/images/ # 上传文件夹路径前缀
+
