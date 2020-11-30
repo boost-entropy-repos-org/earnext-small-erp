@@ -45,12 +45,12 @@ public class RedisConfig {
     public RedisTemplate<Object, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate<Object, Object> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
-        // 用Jackson2JsonRedisSerializer来序列化和反序列化redis的value值
-        redisTemplate.setValueSerializer(serializer());
 
         StringRedisSerializer stringRedisSerializer = new StringRedisSerializer();
         // 使用StringRedisSerializer来序列化和反序列化redis的key值
         redisTemplate.setKeySerializer(stringRedisSerializer);
+        // 用Jackson2JsonRedisSerializer来序列化和反序列化redis的value值
+        redisTemplate.setValueSerializer(serializer());
 
         // hash的key也采用String的序列化方式
         redisTemplate.setHashKeySerializer(stringRedisSerializer);
