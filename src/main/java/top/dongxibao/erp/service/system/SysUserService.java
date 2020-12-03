@@ -17,6 +17,9 @@ import java.util.List;
  */
 public interface SysUserService extends IService<SysUser> {
 
+    @Override
+    SysUser getById(Serializable id);
+
     /**
      * 根据条件查询
      * @param sysUser
@@ -24,11 +27,9 @@ public interface SysUserService extends IService<SysUser> {
      */
     List<SysUser> selectByCondition(SysUser sysUser);
 
-    @Override
-    boolean save(SysUser entity);
+    SysUser insert(SysUser entity);
 
-    @Override
-    boolean updateById(SysUser entity);
+    SysUser update(SysUser entity);
 
     @Override
     boolean removeById(Serializable id);

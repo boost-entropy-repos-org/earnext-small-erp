@@ -81,10 +81,8 @@ public class RedisConfig extends CachingConfigurerSupport {
 
         // 配置序列化（解决乱码的问题）
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-                // 缓存默认有效期 6小时
-                .entryTtl(Duration.ofHours(6))
-                // 设置缓存失效时间
-                .entryTtl(Duration.ofSeconds(20))
+                // 设置默认缓存失效时间
+                .entryTtl(Duration.ofMinutes(20))
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(serializer()))
                 .disableCachingNullValues();
