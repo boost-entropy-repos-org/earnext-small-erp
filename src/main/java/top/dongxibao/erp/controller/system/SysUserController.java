@@ -80,7 +80,7 @@ public class SysUserController extends BaseController {
     @PreAuthorize("@ss.hasPermi('system:user:get')")
     @ApiOperation("用户详细信息")
     @GetMapping("/{id}")
-    public Result get(@PathVariable("id") Long id) {
+    public Result get(@PathVariable("id") String id) {
         SysUser sysUser = sysUserService.getById(id);
         return new Result(sysUser);
     }
@@ -93,8 +93,8 @@ public class SysUserController extends BaseController {
     @ApiOperation("用户新增")
     @PostMapping
     public Result insert(@Validated @RequestBody SysUser sysUser) {
-        boolean insert = sysUserService.save(sysUser);
-        return new Result(sysUser, insert);
+        SysUser insert = sysUserService.insert(sysUser);
+        return new Result(insert);
     }
 
     /**
@@ -107,8 +107,8 @@ public class SysUserController extends BaseController {
     public Result update(@RequestBody SysUser sysUser, @PathVariable("id") Long id) {
         sysUser.setId(id);
         sysUser.setPassword(null);
-        boolean update = sysUserService.updateById(sysUser);
-        return new Result(sysUser, update);
+        SysUser update = sysUserService.update(sysUser);
+        return new Result(update);
     }
 
     /**
@@ -186,7 +186,7 @@ public class SysUserController extends BaseController {
     @ApiOperation("强退用户")
     @PreAuthorize("@ss.hasPermi('system:online:forceLogout')")
     @Log(title = "用户模块", businessType = BusinessType.DELETE)
-    @DeleteMapping("/{tokenId}")
+    @DeleteMapping("force_logout/{tokenId}")
     public Result forceLogout(@PathVariable("tokenId") String tokenId) {
         stringRedisTemplate.delete(Constants.LOGIN_TOKEN_KEY + tokenId);
         return new Result();
