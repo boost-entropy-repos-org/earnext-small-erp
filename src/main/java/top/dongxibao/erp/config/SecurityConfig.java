@@ -31,7 +31,7 @@ import javax.annotation.Resource;
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     /** 不拦截的路径 */
-    private static final String[] PERMIT_WEB_URLS = {};
+    private static final String[] PERMIT_WEB_URLS = {"/redisson/test01"};
 
     /**
      * 自定义用户认证逻辑

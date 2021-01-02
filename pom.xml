@@ -28,6 +28,7 @@
         <oshi.version>3.9.1</oshi.version>
         <velocity.version>1.7</velocity.version>
         <mybatisplus.version>3.3.0</mybatisplus.version>
+        <redisson.version>3.14.1</redisson.version>
         <pagehelper.spring.boot.starter.version>1.2.5</pagehelper.spring.boot.starter.version>
     </properties>
 
@@ -244,6 +245,11 @@
             <groupId>com.aliyun.oss</groupId>
             <artifactId>aliyun-sdk-oss</artifactId>
             <version>3.10.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.redisson</groupId>
+            <artifactId>redisson-spring-boot-starter</artifactId>
+            <version>${redisson.version}</version>
         </dependency>
     </dependencies>
 
