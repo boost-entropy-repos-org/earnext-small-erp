@@ -1,115 +1,152 @@
 package top.dongxibao.erp.service.system.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ArrayUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import top.dongxibao.erp.entity.system.SysRole;
 import top.dongxibao.erp.entity.system.SysRoleDept;
 import top.dongxibao.erp.entity.system.SysRoleMenu;
-import top.dongxibao.erp.entity.system.SysRole;
+import top.dongxibao.erp.entity.system.SysUserRole;
+import top.dongxibao.erp.exception.ServiceException;
 import top.dongxibao.erp.mapper.system.SysRoleDeptMapper;
 import top.dongxibao.erp.mapper.system.SysRoleMapper;
 import top.dongxibao.erp.mapper.system.SysRoleMenuMapper;
+import top.dongxibao.erp.mapper.system.SysUserRoleMapper;
 import top.dongxibao.erp.service.system.SysRoleService;
 
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 /**
- * 角色信息Service业务层处理
+ * 角色信息表
  *
  * @author Dongxibao
- * @date 2020-06-13
+ * @date 2021-01-05
  */
-@Service
-public class SysRoleServiceImpl extends ServiceImpl<SysRoleMapper, SysRole> implements SysRoleService {
-
+@Service("sysRoleService")
+public class SysRoleServiceImpl implements SysRoleService {
     @Autowired
-    private SysRoleDeptMapper sysRoleDeptMapper;
+    private SysRoleMapper sysRoleMapper;
     @Autowired
     private SysRoleMenuMapper sysRoleMenuMapper;
+    @Autowired
+    private SysUserRoleMapper sysUserRoleMapper;
+    @Autowired
+    private SysRoleDeptMapper sysRoleDeptMapper;
+
+    @Override
+    public SysRole getById(Long id) {
+        SysRole sysRole = sysRoleMapper.getById(id);
+        return sysRole;
+    }
 
     @Override
     public List<SysRole> selectByCondition(SysRole sysRole) {
-        return baseMapper.selectByCondition(sysRole);
+        List<SysRole> sysRoles = sysRoleMapper.selectByCondition(sysRole);
+        return sysRoles;
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public boolean save(SysRole entity) {
-        // 1.角色部门关联
-        insertSysRoleDept(entity);
-        // 2.角色菜单关联
-        insertSysRoleMenu(entity);
-        // 3.新增角色
-        return super.save(entity);
+    public SysRole save(SysRole sysRole) {
+        sysRoleMapper.insert(sysRole);
+        insertRoleMenu(sysRole);
+        // 新增角色和部门信息（数据权限）
+        insertRoleDept(sysRole);
+        return sysRole;
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public boolean removeById(Serializable id) {
-        // 1.删除角色部门关联
-        sysRoleDeptMapper.delete(new LambdaQueryWrapper<SysRoleDept>().eq(SysRoleDept::getRoleId, id));
-        // 2.删除角色菜单关联
-        sysRoleMenuMapper.delete(new LambdaQueryWrapper<SysRoleMenu>().eq(SysRoleMenu::getRoleId, id));
-        // 3.删除角色表
-        return super.removeById(id);
+    public SysRole updateById(SysRole sysRole) {
+        sysRoleMapper.update(sysRole);
+        // 删除角色与菜单关联
+        sysRoleMenuMapper.deleteRoleMenuByRoleId(sysRole.getId());
+        insertRoleMenu(sysRole);
+        // 删除角色与部门关联
+        sysRoleDeptMapper.deleteRoleDeptByRoleId(sysRole.getId());
+        // 新增角色和部门信息（数据权限）
+        insertRoleDept(sysRole);
+        return sysRole;
+    }
+
+    @Override
+    public boolean removeById(Long id) {
+        checkRoleUsing(id);
+        // 删除角色与菜单关联
+        sysRoleMenuMapper.deleteRoleMenuByRoleId(id);
+        return sysRoleMapper.deleteById(id) > 0;
     }
 
     @Transactional(rollbackFor = Exception.class)
     @Override
-    public boolean updateById(SysRole entity) {
-        // 1.删除角色部门关联
-        sysRoleDeptMapper.delete(new LambdaQueryWrapper<SysRoleDept>().eq(SysRoleDept::getRoleId, entity.getId()));
-        // 2.删除角色菜单关联
-        sysRoleMenuMapper.delete(new LambdaQueryWrapper<SysRoleMenu>().eq(SysRoleMenu::getRoleId, entity.getId()));
-        // 3.重新角色部门关联
-        insertSysRoleDept(entity);
-        // 4.重新角色菜单关联
-        insertSysRoleMenu(entity);
-        // 5.修改角色
-        return super.updateById(entity);
+    public boolean removeByIds(List<Long> idList) {
+        idList.forEach(id -> {
+            if (id != null) {
+                checkRoleUsing(id);
+                // 删除角色与菜单关联
+                sysRoleMenuMapper.deleteRoleMenuByRoleId(id);
+            }
+        });
+        return sysRoleMapper.deleteBatchIds(idList) > 0;
     }
 
     @Override
-    public Set<String> selectRolePermissionByUserId(Long id) {
-        List<SysRole> perms = baseMapper.selectRolePermissionByUserId(id);
-        Set<String> permsSet = new HashSet<>();
-        for (SysRole perm : perms) {
-            if (perm != null) {
-                permsSet.addAll(Arrays.asList(perm.getRoleCode().trim().split(",")));
+    public boolean checkSysRoleExist(SysRole sysRole) {
+        return sysRoleMapper.checkSysRoleExist(sysRole) != null;
+    }
+
+    @Override
+    public Set<String> selectRolePermissionByUserId(Long userId) {
+        return sysRoleMapper.selectRolePermissionByUserId(userId);
+    }
+
+    /**
+     * 新增角色部门信息(数据权限)
+     *
+     * @param role 角色对象
+     */
+    public int insertRoleDept(SysRole role) {
+        int rows = 0;
+        // 新增角色与部门（数据权限）管理
+        if (ArrayUtil.isNotEmpty(role.getDeptIds())) {
+            for (Long deptId : role.getDeptIds()) {
+                SysRoleDept rd = new SysRoleDept();
+                rd.setRoleId(role.getId());
+                rd.setDeptId(deptId);
+                rows += sysRoleDeptMapper.insert(rd);
             }
         }
-        return permsSet;
+        return rows;
     }
 
-
-    private void insertSysRoleMenu(SysRole entity) {
-        Long[] menuIds = entity.getMenuIds();
-        if (menuIds != null && menuIds.length > 0) {
-            for (Long menuId : menuIds) {
-                SysRoleMenu sysRoleMenu = new SysRoleMenu();
-                sysRoleMenu.setRoleId(entity.getId());
-                sysRoleMenu.setMenuId(menuId);
-                sysRoleMenuMapper.insert(sysRoleMenu);
+    private int insertRoleMenu(SysRole sysRole) {
+        int rows = 0;
+        // 新增用户与角色管理
+        if (ArrayUtil.isNotEmpty(sysRole.getMenuIds())) {
+            for (Long menuId : sysRole.getMenuIds()) {
+                SysRoleMenu rm = new SysRoleMenu();
+                rm.setRoleId(sysRole.getId());
+                rm.setMenuId(menuId);
+                rows += sysRoleMenuMapper.insert(rm);
             }
         }
+        return rows;
     }
 
-    private void insertSysRoleDept(SysRole entity) {
-        Long[] deptIds = entity.getDeptIds();
-        if (deptIds != null && deptIds.length > 0) {
-            for (Long deptId : deptIds) {
-                SysRoleDept sysRoleDept = new SysRoleDept();
-                sysRoleDept.setRoleId(entity.getId());
-                sysRoleDept.setDeptId(deptId);
-                sysRoleDeptMapper.insert(sysRoleDept);
-            }
+    /**
+     * 检查角色是否被使用
+     * @param id
+     */
+    private void checkRoleUsing(Long id) {
+        SysUserRole sysUserRole = new SysUserRole();
+        sysUserRole.setRoleId(id);
+        List<SysUserRole> sysUserRoles = sysUserRoleMapper.selectByCondition(sysUserRole);
+        SysRole sysRole = sysRoleMapper.getById(id);
+        if (CollUtil.isNotEmpty(sysUserRoles)) {
+            throw new ServiceException(sysRole.getRoleName() + " 已分配,不能删除!");
         }
     }
 }

@@ -20,15 +20,23 @@
         <result property="updateTime" column="update_time"/>
     </resultMap>
 
-    <sql id="selectFields">
+    <sql id="BaseColumns">
          a.id, a.type, a.from_user, a.to_user, a.title, a.content, a.read_time, a.del_flag, a.remark, a.create_by, a.create_time, a.update_by, a.update_time
     </sql>
-
-    <select id="selectByCondition" parameterType="top.dongxibao.erp.entity.system.SysNotifice" resultMap="BaseResultMap">
+    <select id="getById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="BaseColumns"/>
+        from sys_notifice a
+        where a.id = #{id}
+        and a.del_flag = 0
+    </select>
+    <select id="selectByCondition" parameterType="top.dongxibao.erp.entity.system.SysNotifice"
+            resultMap="BaseResultMap">
         SELECT
-        <include refid="selectFields"/>
+        <include refid="BaseColumns"/>
         FROM sys_notifice a
         <where>
+            and a.del_flag = 0
             <if test="toUser != null">
                 AND a.to_user = #{toUser}
             </if>
@@ -44,8 +52,74 @@
             <if test="endTime != null"><!-- 结束时间检索 -->
                 AND <![CDATA[ a.create_time <= #{endTime} ]]>
             </if>
-            <!-- 数据范围过滤 -->
-            ${dataScope}
         </where>
     </select>
+
+
+    <insert id="insert" parameterType="top.dongxibao.erp.entity.system.SysNotifice">
+        insert into sys_notifice
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="type != null">type,</if>
+            <if test="fromUser != null">from_user,</if>
+            <if test="toUser != null">to_user,</if>
+            <if test="title != null">title,</if>
+            <if test="content != null">content,</if>
+            <if test="readTime != null">read_time,</if>
+            del_flag,
+            <if test="remark != null">remark,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="type != null">#{type},</if>
+            <if test="fromUser != null">#{fromUser},</if>
+            <if test="toUser != null">#{toUser},</if>
+            <if test="title != null">#{title},</if>
+            <if test="content != null">#{content},</if>
+            <if test="readTime != null">#{readTime},</if>
+            0,
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="top.dongxibao.erp.entity.system.SysNotifice">
+        update sys_notifice
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="id != null">id = #{id},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="fromUser != null">from_user = #{fromUser},</if>
+            <if test="toUser != null">to_user = #{toUser},</if>
+            <if test="title != null">title = #{title},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="readTime != null">read_time = #{readTime},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="deleteById" parameterType="java.lang.Long">
+        update sys_notifice set del_flag = 1 where id = #{id}
+    </update>
+
+    <update id="deleteBatchIds" parameterType="java.lang.Long">
+        update sys_notifice set del_flag = 1 where id in
+        <if test="ids != null">
+            <foreach item="id" collection="ids" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+    </update>
 </mapper>

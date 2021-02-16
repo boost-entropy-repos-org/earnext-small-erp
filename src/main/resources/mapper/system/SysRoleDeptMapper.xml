@@ -1,29 +1,33 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper
-        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
 <mapper namespace="top.dongxibao.erp.mapper.system.SysRoleDeptMapper">
 
     <resultMap type="top.dongxibao.erp.entity.system.SysRoleDept" id="BaseResultMap">
         <result property="id" column="id"/>
         <result property="roleId" column="role_id"/>
         <result property="deptId" column="dept_id"/>
-        <result property="delFlag" column="del_flag"/>
-        <result property="remark" column="remark"/>
         <result property="createBy" column="create_by"/>
         <result property="createTime" column="create_time"/>
         <result property="updateBy" column="update_by"/>
         <result property="updateTime" column="update_time"/>
     </resultMap>
 
-    <sql id="selectFields">
-         a.id, a.role_id, a.dept_id, a.del_flag, a.remark, a.create_by, a.create_time, a.update_by, a.update_time
+    <sql id="BaseColumns">
+        a.id,a.role_id,a.dept_id,a.create_by,a.create_time,a.update_by,a.update_time
     </sql>
 
+    <select id="getById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="BaseColumns"/>
+        from sys_role_dept a
+        where a.id = #{id}
+    </select>
+
     <select id="selectByCondition" parameterType="top.dongxibao.erp.entity.system.SysRoleDept" resultMap="BaseResultMap">
-        SELECT
-        <include refid="selectFields"/>
-        FROM sys_role_dept a
+        select
+        <include refid="BaseColumns"/>
+        from sys_role_dept a
         <where>
             <if test="beginTime != null"><!-- 开始时间检索 -->
                 AND <![CDATA[ a.create_time >= #{beginTime} ]]>
@@ -31,8 +35,65 @@
             <if test="endTime != null"><!-- 结束时间检索 -->
                 AND <![CDATA[ a.create_time <= #{endTime} ]]>
             </if>
-            <!-- 数据范围过滤 -->
-            ${dataScope}
+            <if test="id != null ">and a.id = #{id}</if>
+            <if test="roleId != null ">and a.role_id = #{roleId}</if>
+            <if test="deptId != null ">and a.dept_id = #{deptId}</if>
+            <if test="createBy != null  and createBy != '' ">and a.create_by = #{createBy}</if>
+            <if test="createTime != null ">and a.create_time = #{createTime}</if>
+            <if test="updateBy != null  and updateBy != '' ">and a.update_by = #{updateBy}</if>
+            <if test="updateTime != null ">and a.update_time = #{updateTime}</if>
         </where>
     </select>
+
+    <insert id="insert" parameterType="top.dongxibao.erp.entity.system.SysRoleDept">
+        insert into sys_role_dept
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="roleId != null">role_id,</if>
+            <if test="deptId != null">dept_id,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="roleId != null">#{roleId},</if>
+            <if test="deptId != null">#{deptId},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="top.dongxibao.erp.entity.system.SysRoleDept">
+        update sys_role_dept
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="id != null">id = #{id},</if>
+            <if test="roleId != null">role_id = #{roleId},</if>
+            <if test="deptId != null">dept_id = #{deptId},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteById" parameterType="java.lang.Long">
+        delete from sys_role_dept where id = #{id}
+    </delete>
+
+    <delete id="deleteBatchIds" parameterType="java.lang.Long">
+        delete from sys_role_dept where id in
+        <if test="ids != null">
+            <foreach item="id" collection="ids" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+    </delete>
+    <delete id="deleteRoleDeptByRoleId">
+        delete from sys_role_dept where role_id=#{roleId}
+    </delete>
 </mapper>

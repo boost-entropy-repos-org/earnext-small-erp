@@ -1,32 +1,86 @@
 package top.dongxibao.erp.mapper.system;
-
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
 import top.dongxibao.erp.entity.system.SysMenu;
 
 import java.util.List;
+import java.util.Set;
 
 /**
- * 菜单权限Mapper 接口
+ * 菜单权限表
  * 
  * @author Dongxibao
- * @date 2020-06-13
+ * @date 2021-01-05
  */
-public interface SysMenuMapper extends BaseMapper<SysMenu> {
+public interface SysMenuMapper {
+
     /**
-     * 根据条件查询
-     * @param sysMenu
-     * @return
+     * 查询菜单权限表
+     *
+     * @param id 菜单权限表ID
+     * @return 菜单权限表
+     */
+    SysMenu getById(Long id);
+
+    /**
+     * 查询菜单权限表列表
+     *
+     * @param sysMenu 菜单权限表
+     * @return 菜单权限表集合
      */
     List<SysMenu> selectByCondition(SysMenu sysMenu);
 
     /**
-     * 根据用户ID查询权限
-     *
-     * @param id 用户ID
-     * @return 权限列表
+     * 校验唯一
+     * @param entity
+     * @return
      */
-    List<String> selectMenuPermsByUserId(@Param("userId") Long id);
+    SysMenu checkSysMenu(SysMenu entity);
+    /**
+     * 校验checkRoutingPath唯一
+     * @param entity
+     * @return
+     */
+    SysMenu checkRoutingPath(SysMenu entity);
 
-    List<SysMenu> checkSysMenu(SysMenu entity);
+    /**
+     * 新增菜单权限表
+     *
+     * @param sysMenu 菜单权限表
+     * @return 结果
+     */
+    int insert(SysMenu sysMenu);
+
+    /**
+     * 修改菜单权限表
+     *
+     * @param sysMenu 菜单权限表
+     * @return 结果
+     */
+    int update(SysMenu sysMenu);
+
+    /**
+     * 删除菜单权限表
+     *
+     * @param id 菜单权限表ID
+     * @return 结果
+     */
+    int deleteById(Long id);
+
+    /**
+     * 批量删除菜单权限表
+     *
+     * @param ids 需要删除的数据ID
+     * @return 结果
+     */
+    int deleteBatchIds(@Param("ids") List<Long> ids);
+
+    int hasChildByMenuId(@Param("id") Long id);
+
+    Set<String> selectMenuPermsByUserId(@Param("userId") Long userId);
+
+    List<SysMenu> selectMenuListByUserId(SysMenu menu);
+
+    List<Long> selectMenuListByRoleId(@Param("roleId") Long roleId);
+
+    List<SysMenu> selectMenuTreeByUserId(@Param("userId") Long userId);
 }

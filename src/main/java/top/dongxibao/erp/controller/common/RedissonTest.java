@@ -28,6 +28,7 @@ public class RedissonTest {
     /** 系统配置的线程池 */
     @Autowired
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
+
     @GetMapping("/test01")
     void test01() {
         log.info("主线程... {}", Thread.currentThread().getId());
@@ -42,6 +43,7 @@ public class RedissonTest {
             log.info("第二个线程结束... {}", Thread.currentThread().getId());
         }, threadPoolTaskExecutor);
     }
+
     private void commonCode() {
         // 获取一把锁，只要锁的名字一样，就是同一把锁
         RLock lock = redissonClient.getLock("anyLock");

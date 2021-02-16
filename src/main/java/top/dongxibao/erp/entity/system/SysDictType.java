@@ -1,6 +1,5 @@
 package top.dongxibao.erp.entity.system;
 
-import com.baomidou.mybatisplus.annotation.TableField;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -33,6 +32,5 @@ public class SysDictType extends BaseEntity {
     private Integer status;
 
     @ApiModelProperty(value = "字表")
-    @TableField(exist = false)
     private List<SysDictData> sysDictDataList;
 }

@@ -40,25 +40,25 @@ public class CommonController {
      */
     @ApiOperation("通用上传")
     @PostMapping("/upload")
-    public Result uploadFile(@RequestParam("id")Long id,
-                             @RequestParam(value = "attachType",required = false,defaultValue = "0")Integer attachType,
-                             @RequestParam("file")MultipartFile file) throws Exception {
+    public Result uploadFile(@RequestParam(value = "id") Long id,
+                             @RequestParam(value = "attachType", required = false, defaultValue = "0") Integer attachType,
+                             @RequestParam(value = "file") MultipartFile file) throws Exception {
         String realFileName = file.getOriginalFilename();
         // 上传文件路径
         String filePath = SmallConfig.getUploadPath();
         // 上传并返回新文件名称
         String pathName = FileUtils.upload(id, attachType, filePath, file);
-        Map<String,String> map = new HashMap<>(3);
+        Map<String, String> map = new HashMap<>(3);
         map.put("fileName", realFileName);
         map.put("url", pathName);
-        return new Result(map);
+        return Result.ok(map);
     }
 
     @ApiOperation("通用批量上传")
     @PostMapping("/upload_files")
-    public Result uploadFiles(@RequestParam("id")Long id,
-                              @RequestParam(value = "attachType",required = false,defaultValue = "0")Integer attachType,
-                              @RequestParam("files")MultipartFile... files) throws Exception {
+    public Result uploadFiles(@RequestParam("id") Long id,
+                              @RequestParam(value = "attachType", required = false, defaultValue = "0") Integer attachType,
+                              @RequestParam("files") MultipartFile... files) throws Exception {
         List<Map<String, String>> resultList = new ArrayList<>();
         // 上传文件路径
         String filePath = SmallConfig.getUploadPath();
@@ -66,12 +66,12 @@ public class CommonController {
             String realFileName = file.getOriginalFilename();
             // 上传并返回新文件路径名称
             String pathName = FileUtils.upload(id, attachType, filePath, file);
-            Map<String,String> map = new HashMap<>(3);
+            Map<String, String> map = new HashMap<>(3);
             map.put("url", pathName);
             map.put("fileName", realFileName);
             resultList.add(map);
         }
-        return new Result(resultList);
+        return Result.ok(resultList);
     }
 
     /**
@@ -83,7 +83,7 @@ public class CommonController {
      */
     @ApiOperation("通用下载")
     @GetMapping("/download")
-    public void downloadFile(@RequestParam("id")Long id, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public void downloadFile(@RequestParam("id") Long id, HttpServletRequest request, HttpServletResponse response) throws Exception {
         AttachAssociation attachAssociation = attachAssociationService.getById(id);
         String downloadPath = attachAssociation.getAttachPath() + attachAssociation.getNewAttachName();
         String realAttachName = attachAssociation.getRealAttachName();
@@ -93,9 +93,10 @@ public class CommonController {
                 "attachment;fileName=" + FileUtils.getFileNameByEncode(request, realAttachName));
         FileUtils.writeBytes(downloadPath, response.getOutputStream());
     }
+
     @ApiOperation("通用删除")
     @DeleteMapping("/file_delete/{id}")
-    public Result deleteFile(@PathVariable("id")Long id) {
-        return new Result(attachAssociationService.removeById(id));
+    public Result deleteFile(@PathVariable("id") Long id) {
+        return Result.of(attachAssociationService.removeById(id), null);
     }
 }

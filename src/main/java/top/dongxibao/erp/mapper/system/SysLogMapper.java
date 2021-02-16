@@ -1,22 +1,62 @@
 package top.dongxibao.erp.mapper.system;
 
-
-import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import top.dongxibao.erp.entity.system.SysLog;
 
 import java.util.List;
 
 /**
- * 系统操作日志记录Mapper 接口
+ * 系统日志记录
  * 
  * @author Dongxibao
- * @date 2020-06-21
+ * @date 2021-01-04
  */
-public interface SysLogMapper extends BaseMapper<SysLog> {
+public interface SysLogMapper {
+
     /**
-     * 根据条件查询
-     * @param sysLog
-     * @return
+     * 查询系统日志记录
+     *
+     * @param id 系统日志记录ID
+     * @return 系统日志记录
+     */
+    SysLog getById(Long id);
+
+    /**
+     * 查询系统日志记录列表
+     *
+     * @param sysLog 系统日志记录
+     * @return 系统日志记录集合
      */
     List<SysLog> selectByCondition(SysLog sysLog);
+
+    /**
+     * 新增系统日志记录
+     *
+     * @param sysLog 系统日志记录
+     * @return 结果
+     */
+    int insert(SysLog sysLog);
+
+    /**
+     * 修改系统日志记录
+     *
+     * @param sysLog 系统日志记录
+     * @return 结果
+     */
+    int update(SysLog sysLog);
+
+    /**
+     * 删除系统日志记录
+     *
+     * @param id 系统日志记录ID
+     * @return 结果
+     */
+    int deleteById(Long id);
+
+    /**
+     * 批量删除系统日志记录
+     *
+     * @param ids 需要删除的数据ID
+     * @return 结果
+     */
+    int deleteBatchIds(List ids);
 }

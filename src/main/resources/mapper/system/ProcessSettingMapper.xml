@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="top.dongxibao.erp.mapper.system.ProcessSettingMapper">
+
+    <resultMap type="top.dongxibao.erp.entity.system.ProcessSetting" id="BaseResultMap">
+        <result property="id" column="id"/>
+        <result property="moduleId" column="module_id"/>
+        <result property="moduleName" column="module_name"/>
+        <result property="processDefinitionKey" column="process_definition_key"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="assignees" column="assignees"/>
+    </resultMap>
+
+    <sql id="BaseColumns">
+        a.assignees,
+        a.id,a.module_id,a.module_name,a.process_definition_key,a.del_flag,a.remark,a.create_time,a.update_time,a.create_by,a.update_by
+    </sql>
+
+    <select id="getById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="BaseColumns"/>
+        from process_setting a
+        where a.id = #{id}
+        and a.del_flag = 0
+    </select>
+
+    <select id="selectByCondition" parameterType="top.dongxibao.erp.entity.system.ProcessSetting" resultMap="BaseResultMap">
+        select
+        <include refid="BaseColumns"/>
+        from process_setting a
+        <where>
+            and a.del_flag = 0
+            <if test="beginTime != null"><!-- 开始时间检索 -->
+                AND <![CDATA[ a.create_time >= #{beginTime} ]]>
+            </if>
+            <if test="endTime != null"><!-- 结束时间检索 -->
+                AND <![CDATA[ a.create_time <= #{endTime} ]]>
+            </if>
+            <if test="id != null ">and a.id = #{id}</if>
+            <if test="moduleId != null ">and a.module_id = #{moduleId}</if>
+            <if test="moduleName != null  and moduleName != '' ">and a.module_name like #{moduleName}</if>
+            <if test="processDefinitionKey != null  and processDefinitionKey != '' ">
+                and a.process_definition_key = #{processDefinitionKey}
+            </if>
+        </where>
+    </select>
+    <select id="selectByModuleId" resultType="top.dongxibao.erp.entity.system.ProcessSetting">
+        select
+        <include refid="BaseColumns"/>
+        from process_setting a
+        <where>
+            and a.del_flag = 0
+            and a.module_id = #{moduleId}
+        </where>
+    </select>
+
+    <insert id="insert" parameterType="top.dongxibao.erp.entity.system.ProcessSetting">
+        insert into process_setting
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="moduleId != null">module_id,</if>
+            <if test="moduleName != null">module_name,</if>
+            <if test="processDefinitionKey != null">process_definition_key,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="assignees != null">assignees,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="moduleId != null">#{moduleId},</if>
+            <if test="moduleName != null">#{moduleName},</if>
+            <if test="processDefinitionKey != null">#{processDefinitionKey},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="assignees != null">#{assignees},</if>
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="top.dongxibao.erp.entity.system.ProcessSetting">
+        update process_setting
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="id != null">id = #{id},</if>
+            <if test="moduleId != null">module_id = #{moduleId},</if>
+            <if test="moduleName != null">module_name = #{moduleName},</if>
+            <if test="processDefinitionKey != null">process_definition_key = #{processDefinitionKey},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="assignees != null">assignees = #{assignees},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="deleteById" parameterType="java.lang.Long">
+        update process_setting set del_flag = 1 where id = #{id}
+    </update>
+
+    <update id="deleteBatchIds" parameterType="java.lang.Long">
+        update process_setting set del_flag = 1 where id in
+        <if test="ids != null">
+            <foreach item="id" collection="ids" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+    </update>
+</mapper>

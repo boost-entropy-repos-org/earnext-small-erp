@@ -22,6 +22,6 @@ public class ServerController extends BaseController {
     public Result getInfo() throws Exception {
         ServerUtil server = new ServerUtil();
         server.copyTo();
-        return new Result(server);
+        return Result.ok(server);
     }
 }

@@ -2,12 +2,32 @@ spring:
   profiles:
     active:
       - dev
+  application:
+    name: small-erp
+    # Hikari 连接池配置
+    hikari:
+      # 此属性控制从池返回的连接的默认自动提交行为,默认值：true
+      auto-commit: true
+      connection-test-query: SELECT 1
+      # 数据库连接超时时间,默认30秒，即30000
+      connection-timeout: 30000
+      # 空闲连接存活最大时间，默认600000（10分钟）
+      idle-timeout: 180000
+      # 此属性控制池中连接的最长生命周期，值0表示无限生命周期，默认1800000即30分钟
+      max-lifetime: 1800000
+      # 连接池最大连接数，默认是10
+      maximum-pool-size: 20
+      minimum-idle: 5
+      pool-name: MyHikariCP
+  # activiti 模块
+  # 解决启动报错：class path resource [processes/] cannot be resolved to URL because it does not exist
   activiti:
     check-process-definitions: false
-    #保存历史数据级别设置为full最高级别，便于历史数据的追溯
+    # 检测身份信息表是否存在
+    db-identity-used: false
+    # 保存历史数据级别设置为full最高级别，便于历史数据的追溯
     history-level: full
     db-history-used: true
-    database-schema-update: true
   # 文件上传
   servlet:
     multipart:
@@ -15,36 +35,15 @@ spring:
       max-file-size:  10MB
       # 设置总上传的文件大小
       max-request-size:  20MB
-  jackson:
-    serialization:
-      write-dates-as-timestamps: true
-      indent_output: true
-    time-zone: Asia/Shanghai
-  cache:
-    redis:
-      # 缓存前缀
-      key-prefix: cache_
-      use-key-prefix: true
-      # 是否缓存空值，防止缓存穿透
-      cache-null-values: true
-      # 缓存过期时间，毫秒为单位
-      time-to-live: 60000
-mybatis-plus:
-  mapper-locations: classpath:/mapper/**/*Mapper.xml
-  typeAliasesPackage: top.dongxibao.**.entity
+
+mybatis:
+  # 搜索指定包别名
+  typeAliasesPackage: top.dongxibao.erp.**.entity.*
+  # 配置mapper的扫描，找到所有的mapper.xml映射文件
+  mapperLocations: classpath:/mapper/**/*.xml
   configuration:
-    jdbc-type-for-null: 'null'
-  global-config:
-    # 关闭MP3.0自带的banner
-    banner: false
-    db-config:
-      logic-delete-field: del_flag  #全局逻辑删除字段值 3.3.0开始支持
-      logic-delete-value: 1 # 逻辑已删除值(默认为 1)
-      logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
-      id-type: assign_id
-      capital-mode: true
-      #数据库类型
-      db-type: mysql
+    map-underscore-to-camel-case: true
+
 # PageHelper分页插件
 pagehelper:
   helperDialect: mysql
@@ -52,12 +51,45 @@ pagehelper:
   supportMethodsArguments: true
   params: count=countSql
 
-# token配置
-token:
+# 登录相关配置
+login:
+  # 账号单用户 登录
+  single-login: false
+  #  验证码
+  login-code:
+    #  验证码类型配置 查看 LoginProperties 类
+    code-type: arithmetic
+    #  登录图形验证码有效时间/分钟
+    expiration: 2
+    #  验证码高度
+    width: 111
+    #  验证码宽度
+    heigth: 36
+    # 内容长度
+    length: 2
+    # 字体名称，为空则使用默认字体
+    font-name:
+    # 字体大小
+    font-size: 25
+
+#jwt
+jwt:
   # 令牌自定义标识
   header: Authorization
-  # 令牌秘钥
-  secret: abcdefghijklmnopqrstuvwxyz
-  # 令牌有效期（默认30分钟）
-  expireTime: 30
+  # 令牌密钥
+  secret: ZmQ0ZGI5NjQ0MDQwY2I4MjMxY2Y3ZmI3MjdhN2ZmMjNhODViOTg1ZGE0NTBjMGM
+  # 令牌有效期（默认60分钟）
+  expireTime: 60
+  # 令牌前缀
+  token-start-with: Bearer
 
+# 项目相关配置
+small:
+  # 名称
+  name: small-erp
+  # 版本
+  version: 1.0.0
+  # 文件路径 示例（ Windows配置E:\MyTestCode\small-erp\uploadPath，Linux配置 /home/small-erp/uploadPath）
+  profile: E:\MyTestCode\small-erp\uploadPath
+  # 获取ip地址开关
+  addressEnabled: false

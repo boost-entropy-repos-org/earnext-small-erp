@@ -4,18 +4,13 @@ package top.dongxibao.erp.enums;
  * 业务操作类型
  *
  * @author Dongxibao
- * @date 2020-06-07
+ * @date 2020-11-27
  */
 public enum BusinessType {
     /**
      * 其它
      */
     OTHER,
-
-    /**
-     * 查询
-     */
-    SELECT,
 
     /**
      * 新增
@@ -51,9 +46,4 @@ public enum BusinessType {
      * 强退
      */
     FORCE,
-
-    /**
-     * 清空数据
-     */
-    CLEAN,
 }

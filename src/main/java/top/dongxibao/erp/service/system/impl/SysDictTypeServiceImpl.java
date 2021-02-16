@@ -1,13 +1,13 @@
 package top.dongxibao.erp.service.system.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import top.dongxibao.erp.entity.system.SysDictData;
 import top.dongxibao.erp.entity.system.SysDictType;
 import top.dongxibao.erp.exception.ServiceException;
+import top.dongxibao.erp.mapper.system.SysDictDataMapper;
 import top.dongxibao.erp.mapper.system.SysDictTypeMapper;
 import top.dongxibao.erp.service.system.SysDictDataService;
 import top.dongxibao.erp.service.system.SysDictTypeService;
@@ -22,29 +22,34 @@ import java.util.List;
  * @date 2020-07-05
  */
 @Service
-public class SysDictTypeServiceImpl extends ServiceImpl<SysDictTypeMapper, SysDictType> implements SysDictTypeService {
-// todo:测试
+public class SysDictTypeServiceImpl implements SysDictTypeService {
+    // todo:测试
     @Autowired
-    private SysDictDataService sysDictDataService;
+    private SysDictDataMapper sysDictDataMapper;
+    @Autowired
+    private SysDictTypeMapper sysDictTypeMapper;
 
     @Override
-    public SysDictType getById(Serializable id) {
-        SysDictType sysDictType = super.getById(id);
+    public SysDictType getById(Long id) {
+        SysDictType sysDictType = sysDictTypeMapper.getById(id);
+        SysDictData sysDictData = new SysDictData();
+        sysDictData.setDictTypeId(id);
         List<SysDictData> sysDictDataList =
-                sysDictDataService.list(new LambdaQueryWrapper<SysDictData>().eq(SysDictData::getDictTypeId, id));
+                sysDictDataMapper.selectByCondition(sysDictData);
         sysDictType.setSysDictDataList(sysDictDataList);
         return sysDictType;
     }
 
     @Override
     public List<SysDictType> selectByCondition(SysDictType sysDictType) {
-        return baseMapper.selectByCondition(sysDictType);
+        return sysDictTypeMapper.selectByCondition(sysDictType);
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
-    public boolean save(SysDictType entity) {
+    public SysDictType save(SysDictType entity) {
         // 校验是否存在
-        List<SysDictType> sysDictTypes = baseMapper.checkDictType(entity);
+        List<SysDictType> sysDictTypes = sysDictTypeMapper.checkDictType(entity);
         if (CollectionUtils.isNotEmpty(sysDictTypes)) {
             throw new ServiceException(entity.getDictType() + " 已存在", 400);
         }
@@ -53,16 +58,18 @@ public class SysDictTypeServiceImpl extends ServiceImpl<SysDictTypeMapper, SysDi
         if (CollectionUtils.isNotEmpty(sysDictDataList)) {
             sysDictDataList.forEach(sysDictData -> {
                 sysDictData.setDictTypeId(entity.getId());
-                sysDictDataService.saveOrUpdate(sysDictData);
+                sysDictDataMapper.insert(sysDictData);
             });
         }
-        return super.save(entity);
+        sysDictTypeMapper.insert(entity);
+        return entity;
     }
 
+    @Transactional(rollbackFor = Exception.class)
     @Override
-    public boolean updateById(SysDictType entity) {
+    public SysDictType updateById(SysDictType entity) {
         // 校验是否存在
-        List<SysDictType> sysDictTypes = baseMapper.checkDictType(entity);
+        List<SysDictType> sysDictTypes = sysDictTypeMapper.checkDictType(entity);
         if (CollectionUtils.isNotEmpty(sysDictTypes)) {
             throw new ServiceException(entity.getDictType() + " 已存在", 400);
         }
@@ -71,16 +78,27 @@ public class SysDictTypeServiceImpl extends ServiceImpl<SysDictTypeMapper, SysDi
         if (CollectionUtils.isNotEmpty(sysDictDataList)) {
             sysDictDataList.forEach(sysDictData -> {
                 sysDictData.setDictTypeId(entity.getId());
-                sysDictDataService.saveOrUpdate(sysDictData);
+                if (sysDictData.getId() == null) {
+                    sysDictDataMapper.insert(sysDictData);
+                } else {
+                    sysDictDataMapper.update(sysDictData);
+                }
             });
         }
-        return super.updateById(entity);
+        sysDictTypeMapper.update(entity);
+        return entity;
     }
 
     @Override
-    public boolean removeById(Serializable id) {
-        // 删除字表
-        sysDictDataService.remove(new LambdaQueryWrapper<SysDictData>().eq(SysDictData::getDictTypeId, id));
-        return super.removeById(id);
+    public boolean removeById(Long id) {
+        sysDictDataMapper.deleteByTypeId(id);
+        return sysDictTypeMapper.deleteById(id) > 0;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public boolean removeByIds(List<Long> idList) {
+        idList.forEach(id -> sysDictDataMapper.deleteByTypeId(id));
+        return sysDictTypeMapper.deleteBatchIds(idList) > 0;
     }
 }

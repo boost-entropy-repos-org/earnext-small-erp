@@ -1,6 +1,5 @@
 package top.dongxibao.erp;
 
-import org.activiti.spring.boot.SecurityAutoConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -11,11 +10,18 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * @date 2020-06-07
  */
 @EnableScheduling
-@SpringBootApplication(exclude = SecurityAutoConfiguration.class)
+@SpringBootApplication(exclude = {
+        org.activiti.spring.boot.SecurityAutoConfiguration.class
+})
 public class SmallErpApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(SmallErpApplication.class, args);
     }
 
+    /*
+    TODO：
+     数据权限
+     整合quartz
+     */
 }

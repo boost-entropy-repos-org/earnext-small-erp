@@ -1,9 +1,6 @@
 package top.dongxibao.erp.service.system;
 
-import com.baomidou.mybatisplus.extension.service.IService;
 import top.dongxibao.erp.entity.system.SysDictType;
-import top.dongxibao.erp.entity.system.SysDictType;
-
 import java.io.Serializable;
 import java.util.List;
 
@@ -13,9 +10,15 @@ import java.util.List;
  * @author Dongxibao
  * @date 2020-07-05
  */
-public interface SysDictTypeService extends IService<SysDictType> {
-    @Override
-    SysDictType getById(Serializable id);
+public interface SysDictTypeService {
+
+    /**
+     * 查询数据字典主表
+     *
+     * @param id
+     * @return 数据字典主表
+     */
+    SysDictType getById(Long id);
 
     /**
      * 根据条件查询
@@ -24,12 +27,35 @@ public interface SysDictTypeService extends IService<SysDictType> {
      */
     List<SysDictType> selectByCondition(SysDictType sysDictType);
 
-    @Override
-    boolean save(SysDictType entity);
+    /**
+     * 新增数据字典主表
+     *
+     * @param sysDictType 数据字典主表
+     * @return 结果
+     */
+    SysDictType save(SysDictType sysDictType);
 
-    @Override
-    boolean updateById(SysDictType entity);
+    /**
+     * 修改数据字典主表
+     *
+     * @param sysDictType 数据字典主表
+     * @return 结果
+     */
+    SysDictType updateById(SysDictType sysDictType);
 
-    @Override
-    boolean removeById(Serializable id);
+    /**
+     * 删除数据字典主表
+     *
+     * @param id 数据字典主表ID
+     * @return 结果
+     */
+    boolean removeById(Long id);
+
+    /**
+     * 批量删除数据字典主表
+     *
+     * @param idList 需要删除的数据ID集合
+     * @return 结果
+     */
+    boolean removeByIds(List<Long> idList);
 }

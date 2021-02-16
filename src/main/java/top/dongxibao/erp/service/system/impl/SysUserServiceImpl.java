@@ -1,133 +1,129 @@
 package top.dongxibao.erp.service.system.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import org.apache.commons.collections4.CollectionUtils;
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ArrayUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import top.dongxibao.erp.entity.system.SysRole;
 import top.dongxibao.erp.entity.system.SysUser;
 import top.dongxibao.erp.entity.system.SysUserRole;
-import top.dongxibao.erp.exception.ServiceException;
+import top.dongxibao.erp.mapper.system.SysRoleMapper;
 import top.dongxibao.erp.mapper.system.SysUserMapper;
 import top.dongxibao.erp.mapper.system.SysUserRoleMapper;
+import top.dongxibao.erp.security.SecurityUtils;
 import top.dongxibao.erp.service.system.SysUserService;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
- * <p>
- * 用户信息表 服务实现类
- * </p>
+ * 用户信息表
  *
  * @author Dongxibao
- * @date 2020-06-14
+ * @date 2021-01-05
  */
-@CacheConfig(cacheNames = {"userCache"})
-@Service
-public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements SysUserService {
-
+@Service("sysUserService")
+public class SysUserServiceImpl implements SysUserService {
+    @Autowired
+    private SysUserMapper sysUserMapper;
     @Autowired
     private SysUserRoleMapper sysUserRoleMapper;
+    @Autowired
+    private SysRoleMapper sysRoleMapper;
 
-    /**
-     * 如果缓存存在，直接读取缓存值；如果缓存不存在，则调用目标方法，并将结果放入缓存
-     * unless="#result == null" 不缓存null值
-     */
-    @Cacheable(cacheNames = {"sysUser"}, key = "#id", unless = "#result == null")
     @Override
-    public SysUser getById(Serializable id) {
-        System.out.println(id + "执行查询");
-        return super.getById(id);
+    public SysUser getById(Long id) {
+        SysUser sysUser = sysUserMapper.getById(id);
+        SysRole sysRole = new SysRole();
+        sysRole.setUserId(id);
+        List<SysRole> sysRoles = sysRoleMapper.selectByCondition(sysRole);
+        sysUser.setRoleList(sysRoles);
+        return sysUser;
     }
 
-    // 标志读取缓存操作，如果缓存不存在，则调用目标方法，并将结果放入缓存
-    @Cacheable("userList")
     @Override
     public List<SysUser> selectByCondition(SysUser sysUser) {
-        return baseMapper.selectByCondition(sysUser);
-    }
-
-    /**
-     * 写入缓存，key为entity.id
-     */
-    @CachePut(cacheNames = {"sysUser"}, key = "#entity.id", unless = "#result == null")
-    @Override
-    public SysUser insert(SysUser entity) {
-        // 0.校验用户名
-        List<SysUser> sysUsers = baseMapper.checkSysUser(entity);
-        if (CollectionUtils.isNotEmpty(sysUsers)) {
-            throw new ServiceException(entity.getUsername() + " 已存在", 400);
+        List<SysUser> sysUsers = sysUserMapper.selectByCondition(sysUser);
+        if (CollUtil.isNotEmpty(sysUsers)) {
+            sysUsers.forEach(sysUser1 -> {
+                SysRole sysRole = new SysRole();
+                sysRole.setUserId(sysUser1.getId());
+                List<SysRole> sysRoles = sysRoleMapper.selectByCondition(sysRole);
+                sysUser.setRoleList(sysRoles);
+            });
         }
-        // 1.用户角色关联
-        insertSysUserRole(entity);
-        // 2.新增用户
-        super.save(entity);
-        return entity;
+        return sysUsers;
     }
 
-    // 同时使用多个缓存注解
-    /*@Caching(
-            cacheable = {
-                    @Cacheable(cacheNames = {"Cacheable1"}, key = "#entity.id", unless = "#result == null"),
-                    @Cacheable(cacheNames = {"Cacheable2"}, key = "#entity.id", unless = "#result == null")},
-            put = {
-                    @CachePut(cacheNames = {"CachePut1"}, key = "#entity.id", unless = "#result == null"),
-                    @CachePut(cacheNames = {"CachePut2"}, key = "#entity.id", unless = "#result == null")
-            },
-            evict = {
-                    @CacheEvict(cacheNames = {"CacheEvict1"}, key = "#entity.id"),
-                    @CacheEvict(cacheNames = {"CacheEvict2"}, key = "#entity.id")
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public SysUser save(SysUser sysUser) {
+        String encryptPassword = SecurityUtils.encryptPassword(sysUser.getPassword().trim());
+        sysUser.setPassword(encryptPassword);
+        sysUserMapper.insert(sysUser);
+        // 新增用户与角色管理
+        insertUserRole(sysUser);
+        return sysUser;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public SysUser updateById(SysUser sysUser) {
+        sysUserMapper.update(sysUser);
+        Long userId = sysUser.getId();
+        // 删除用户与角色关联
+        sysUserRoleMapper.deleteUserRoleByUserId(userId);
+        // 新增用户与角色管理
+        insertUserRole(sysUser);
+        return sysUser;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public boolean removeById(Long id) {
+        // 删除用户与角色关联
+        sysUserRoleMapper.deleteUserRoleByUserId(id);
+        sysUserMapper.deleteById(id);
+        return true;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public boolean removeByIds(List<Long> idList) {
+        // 删除用户与角色关联
+        idList.forEach(id -> {
+            if (id != null) {
+                sysUserRoleMapper.deleteUserRoleByUserId(id);
             }
-    )*/
-    @CachePut(cacheNames = {"sysUser"}, key = "#entity.id", unless = "#result == null")
-    @Override
-    public SysUser update(SysUser entity) {
-        // 0.校验用户名
-        List<SysUser> sysUsers = baseMapper.checkSysUser(entity);
-        if (CollectionUtils.isNotEmpty(sysUsers)) {
-            throw new ServiceException(entity.getUsername() + " 已存在", 400);
-        }
-        // 1.删除用户角色关联
-        sysUserRoleMapper.delete(new LambdaQueryWrapper<SysUserRole>().eq(SysUserRole::getUserId, entity.getId()));
-        // 2.重新用户角色关联
-        insertSysUserRole(entity);
-        // 3.修改用户
-        super.updateById(entity);
-        return entity;
+        });
+        sysUserMapper.deleteBatchIds(idList);
+        return true;
     }
 
-    /**
-     * 根据key清除缓存
-     */
-    @CacheEvict(cacheNames = {"sysUser"}, key = "#id")
     @Override
-    public boolean removeById(Serializable id) {
-        // 1.删除用户角色关联
-        sysUserRoleMapper.delete(new LambdaQueryWrapper<SysUserRole>().eq(SysUserRole::getUserId, id));
-        // 2.删除用户
-        return super.removeById(id);
+    public boolean checkUsernameExist(SysUser sysUser) {
+        return sysUserMapper.checkUsernameExist(sysUser) != null;
     }
 
     @Override
     public SysUser selectUserByUserName(String username) {
-        return baseMapper.selectOne(new LambdaQueryWrapper<SysUser>().eq(SysUser::getUsername, username));
+        return sysUserMapper.selectUserByUserName(username);
     }
 
     @Override
-    public int resetUserPwd(String username, String password) {
-        return baseMapper.updateByUsername(username, password);
+    public int resetUserPwd(String userName, String encryptNewPassword) {
+        return sysUserMapper.resetUserPwd(userName, encryptNewPassword);
     }
 
-    private void insertSysUserRole(SysUser entity) {
-        Long[] roleIds = entity.getRoleIds();
-        if (roleIds != null && roleIds.length > 0) {
-            for (Long roleId : roleIds) {
-                SysUserRole sysUserRole = new SysUserRole();
-                sysUserRole.setUserId(entity.getId());
-                sysUserRole.setRoleId(roleId);
-                sysUserRoleMapper.insert(sysUserRole);
+    private void insertUserRole(SysUser sysUser) {
+        Long[] roles = sysUser.getRoleIds();
+        if (ArrayUtil.isNotEmpty(roles)) {
+            // 新增用户与角色管理
+            for (Long roleId : roles) {
+                SysUserRole ur = new SysUserRole();
+                ur.setUserId(sysUser.getId());
+                ur.setRoleId(roleId);
+                sysUserRoleMapper.insert(ur);
             }
         }
     }

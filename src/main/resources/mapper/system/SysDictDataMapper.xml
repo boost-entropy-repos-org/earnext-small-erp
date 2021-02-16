@@ -20,13 +20,21 @@
         <result property="updateTime" column="update_time"/>
     </resultMap>
 
-    <sql id="selectFields">
+    <sql id="BaseColumns">
          a.id, a.dict_type_id, a.dict_code, a.dict_name, a.is_default, a.status, a.dict_sort, a.del_flag, a.remark, a.create_by, a.create_time, a.update_by, a.update_time
     </sql>
 
-    <select id="selectByCondition" parameterType="top.dongxibao.erp.entity.system.SysDictData" resultMap="BaseResultMap">
+    <select id="getById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="BaseColumns"/>
+        from sys_dict_data a
+        where a.id = #{id}
+        and a.del_flag = 0
+    </select>
+    <select id="selectByCondition" parameterType="top.dongxibao.erp.entity.system.SysDictData"
+            resultMap="BaseResultMap">
         SELECT
-        <include refid="selectFields"/>
+        <include refid="BaseColumns"/>
         FROM sys_dict_data a
         <where>
             <if test="beginTime != null"><!-- 开始时间检索 -->
@@ -35,8 +43,76 @@
             <if test="endTime != null"><!-- 结束时间检索 -->
                 AND <![CDATA[ a.create_time <= #{endTime} ]]>
             </if>
-            <!-- 数据范围过滤 -->
-            ${dataScope}
         </where>
     </select>
+
+    <insert id="insert" parameterType="top.dongxibao.erp.entity.system.SysDictData">
+        insert into sys_dict_data
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="dictTypeId != null">dict_type_id,</if>
+            <if test="dictCode != null">dict_code,</if>
+            <if test="dictName != null">dict_name,</if>
+            <if test="isDefault != null">is_default,</if>
+            <if test="status != null">status,</if>
+            <if test="dictSort != null">dict_sort,</if>
+            del_flag,
+            <if test="remark != null">remark,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="dictTypeId != null">#{dictTypeId},</if>
+            <if test="dictCode != null">#{dictCode},</if>
+            <if test="dictName != null">#{dictName},</if>
+            <if test="isDefault != null">#{isDefault},</if>
+            <if test="status != null">#{status},</if>
+            <if test="dictSort != null">#{dictSort},</if>
+            0,
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="top.dongxibao.erp.entity.system.SysDictData">
+        update sys_dict_data
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="id != null">id = #{id},</if>
+            <if test="dictTypeId != null">dict_type_id = #{dictTypeId},</if>
+            <if test="dictCode != null">dict_code = #{dictCode},</if>
+            <if test="dictName != null">dict_name = #{dictName},</if>
+            <if test="isDefault != null">is_default = #{isDefault},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="dictSort != null">dict_sort = #{dictSort},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="deleteById" parameterType="java.lang.Long">
+        update sys_dict_data set del_flag = 1 where id = #{id}
+    </update>
+
+    <update id="deleteBatchIds" parameterType="java.lang.Long">
+        update sys_dict_data set del_flag = 1 where id in
+        <if test="ids != null">
+            <foreach item="id" collection="ids" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+    </update>
+    <update id="deleteByTypeId">
+        update sys_dict_data set del_flag = 1 where dict_type_id = #{typeId}
+    </update>
 </mapper>

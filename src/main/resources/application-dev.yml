@@ -1,93 +1,35 @@
 server:
-  port: 10010
+  port: 10000
   servlet:
     # 应用的访问路径
     context-path: /
 
 spring:
   datasource:
-    type: com.alibaba.druid.pool.DruidDataSource
-    driverClassName: com.mysql.cj.jdbc.Driver
-    druid:
-      url: jdbc:mysql://localhost:3306/smallerp?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
-      username: root
-      password: root
-#      url: jdbc:mysql://qdhuixin.meibu.net:12365/erp_yrmy?useUnicode=true&characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull
-#      username: admin
-#      password: admin
-      # 初始连接数
-      initialSize: 5
-      # 最小连接池数量
-      minIdle: 10
-      # 最大连接池数量
-      maxActive: 20
-      # 配置获取连接等待超时的时间
-      maxWait: 60000
-      # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
-      timeBetweenEvictionRunsMillis: 60000
-      # 配置一个连接在池中最小生存的时间，单位是毫秒
-      minEvictableIdleTimeMillis: 300000
-      # 配置一个连接在池中最大生存的时间，单位是毫秒
-      maxEvictableIdleTimeMillis: 900000
-      # 配置检测连接是否有效
-      validationQuery: SELECT 1 FROM DUAL
-      testWhileIdle: true
-      testOnBorrow: false
-      testOnReturn: false
-      webStatFilter:
-        enabled: true
-      statViewServlet:
-        enabled: true
-        # 设置白名单，不填则允许所有访问
-        allow:
-        url-pattern: /druid/*
-        # 控制台管理用户名和密码
-        login-username:
-        login-password:
-      filter:
-        stat:
-          enabled: true
-          # 慢SQL记录
-          log-slow-sql: true
-          slow-sql-millis: 1000
-          merge-sql: true
-        wall:
-          config:
-            multi-statement-allow: true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # SqlServer 配置
+    url: jdbc:mysql://localhost:3306/small_erp?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
   redis:
     host: 127.0.0.1
     # Redis服务器连接端口
     port: 6379
     # 密码
-#    password:
+    # password:
 
 logging:
-  path: ./logs
   level:
     top.dongxibao.erp: debug
   file:
+    path: ./logs
     max-history: 30 # 日志文件存放的日期，单位：Day（天）
-#    max-size: 10000
-#  config: classpath:logback-dev.xml
 
-# Swagger配置
-swagger:
-  # 是否开启swagger
-  enabled: true
-  # 请求前缀
-  pathMapping: /dev-api
-
-
-# 项目相关配置
-small:
-  # 名称
-  name: small-erp
-  # 版本
-  version: 1.0.0
-  # 文件路径 示例（ Windows配置E:\MyTestCode\small-erp\uploadPath，Linux配置 /home/small-erp/uploadPath）
-  profile: E:\MyTestCode\small-erp\small-path
-  # 获取ip地址开关
-  addressEnabled: false
+knife4j:
+  enable: true
+  setting:
+    # Knife4j默认显示中文(zh-CN),如果开发者想直接显示英文(en-US)，在通过该配置进行设置即可
+    language: zh-CN
 
 aliyun:
   oss:

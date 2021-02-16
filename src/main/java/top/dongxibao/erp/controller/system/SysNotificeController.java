@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import top.dongxibao.erp.annotation.Log;
-import top.dongxibao.erp.annotation.RepeatSubmit;
 import top.dongxibao.erp.common.BaseController;
 import top.dongxibao.erp.common.Result;
 import top.dongxibao.erp.common.ResultPage;
@@ -36,7 +35,6 @@ public class SysNotificeController extends BaseController {
     /**
      * 查询系统通知列表
      */
-    @Log(title = "系统通知模块", businessType = BusinessType.SELECT)
     @ApiOperation("查询系统通知列表")
     @PreAuthorize("@ss.hasPermi('system:notifice:page')")
     @GetMapping("/page")
@@ -48,25 +46,24 @@ public class SysNotificeController extends BaseController {
                        @RequestParam(value = "beginTime", required = false) Date beginTime,
                        @RequestParam(value = "endTime", required = false) Date endTime) {
         SysNotifice sysNotifice = new SysNotifice();
-        sysNotifice.setToUser(SecurityUtils.getUsername());
+        sysNotifice.setToUser(SecurityUtils.getCurrentUsername());
         sysNotifice.setBeginTime(beginTime);
         sysNotifice.setEndTime(endTime);
         String orderBy = SqlUtil.escapeOrderBySql(super.packOrderBy(orderByColumn, isAsc));
 
         PageHelper.startPage(pageNum, pageSize, orderBy);
         List<SysNotifice> list = sysNotificeService.selectByCondition(sysNotifice);
-        return new Result(ResultPage.restPage(list));
+        return Result.ok(ResultPage.restPage(list));
     }
 
     /**
      * 获取系统通知详细信息
      */
-    @Log(title = "系统通知模块", businessType = BusinessType.SELECT)
     @ApiOperation("获取系统通知详细信息")
     @PreAuthorize("@ss.hasPermi('system:notifice:get')")
     @GetMapping("/{id}")
     public Result get(@PathVariable("id") Long id) {
-        return new Result(sysNotificeService.getById(id));
+        return Result.ok(sysNotificeService.getById(id));
     }
 
     /**
@@ -75,11 +72,10 @@ public class SysNotificeController extends BaseController {
     @Log(title = "系统通知模块", businessType = BusinessType.INSERT)
     @ApiOperation("新增系统通知")
     @PreAuthorize("@ss.hasPermi('system:notifice:insert')")
-    @RepeatSubmit
     @PostMapping
     public Result insert(@RequestBody SysNotifice sysNotifice) {
-        boolean insert = sysNotificeService.save(sysNotifice);
-        return new Result(sysNotifice, insert);
+        SysNotifice insert = sysNotificeService.save(sysNotifice);
+        return Result.ok(insert);
     }
 
     /**
@@ -92,8 +88,8 @@ public class SysNotificeController extends BaseController {
     public Result update(@RequestBody SysNotifice sysNotifice, @PathVariable("id") Long id) {
         sysNotifice.setId(id);
         sysNotifice.setReadTime(new Date());
-        boolean update = sysNotificeService.updateById(sysNotifice);
-        return new Result(sysNotifice, update);
+        SysNotifice update = sysNotificeService.updateById(sysNotifice);
+        return Result.ok(update);
     }
 
     /**
@@ -105,6 +101,6 @@ public class SysNotificeController extends BaseController {
     @DeleteMapping("/{id}")
     public Result delete(@PathVariable("id") Long id) {
         boolean delete = sysNotificeService.removeById(id);
-        return new Result(null, delete);
+        return Result.of(delete, null);
     }
 }

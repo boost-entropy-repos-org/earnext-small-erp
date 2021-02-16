@@ -1,27 +1,29 @@
 package top.dongxibao.erp.entity.system;
 
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import top.dongxibao.erp.common.BaseEntity;
 
 /**
- * 角色和部门关联对象 sys_role_dept
+ * 角色和部门关联表
  * 
  * @author Dongxibao
- * @date 2020-06-13
+ * @date 2021-01-12
  */
-@ApiModel(value="角色和部门关联对象", description="sys_role_dept")
+@ApiModel("角色和部门关联表")
 @Data
 public class SysRoleDept extends BaseEntity {
-    private static final long serialVersionUID = 1L;
-
-    /** 用户ID */
-    @ApiModelProperty(value = "用户ID")
-    private Long roleId;
-    /** 岗位ID */
-    @ApiModelProperty(value = "岗位ID")
-    private Long deptId;
-    /** 1:删除;0：正常 */
+	private static final long serialVersionUID = 1L;
+	/** 用户ID */
+	@ApiModelProperty("用户ID")
+	@JsonSerialize(using = ToStringSerializer.class)
+	private Long roleId;
+	/** 岗位ID */
+	@ApiModelProperty("岗位ID")
+	@JsonSerialize(using = ToStringSerializer.class)
+	private Long deptId;
 }

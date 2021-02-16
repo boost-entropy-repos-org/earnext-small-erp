@@ -1,24 +1,25 @@
 package top.dongxibao.erp.service.system;
 
-import com.baomidou.mybatisplus.extension.service.IService;
-import top.dongxibao.erp.entity.system.SysUser;
+
 import top.dongxibao.erp.entity.system.SysUser;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
- * <p>
- * 用户信息表 服务类
- * </p>
+ * 用户信息表
  *
  * @author Dongxibao
- * @date 2020-06-14
+ * @date 2021-01-05
  */
-public interface SysUserService extends IService<SysUser> {
+public interface SysUserService {
 
-    @Override
-    SysUser getById(Serializable id);
+    /**
+     * 查询用户信息表
+     *
+     * @param id
+     * @return 用户信息表
+     */
+    SysUser getById(Long id);
 
     /**
      * 根据条件查询
@@ -27,25 +28,58 @@ public interface SysUserService extends IService<SysUser> {
      */
     List<SysUser> selectByCondition(SysUser sysUser);
 
-    SysUser insert(SysUser entity);
-
-    SysUser update(SysUser entity);
-
-    @Override
-    boolean removeById(Serializable id);
+    /**
+     * 新增用户信息表
+     *
+     * @param sysUser 用户信息表
+     * @return 结果
+     */
+    SysUser save(SysUser sysUser);
 
     /**
-     * 根据登陆名查询user
+     * 修改用户信息表
+     *
+     * @param sysUser 用户信息表
+     * @return 结果
+     */
+    SysUser updateById(SysUser sysUser);
+
+    /**
+     * 删除用户信息表
+     *
+     * @param id 用户信息表ID
+     * @return 结果
+     */
+    boolean removeById(Long id);
+
+    /**
+     * 批量删除用户信息表
+     *
+     * @param idList 需要删除的数据ID集合
+     * @return 结果
+     */
+    boolean removeByIds(List<Long> idList);
+
+    /**
+     * 检验用户是否存在
+     * @param sysUser
+     * @return
+     */
+    boolean checkUsernameExist(SysUser sysUser);
+
+    /**
+     *
      * @param username
      * @return
      */
     SysUser selectUserByUserName(String username);
 
     /**
-     * 根据username修改密码
-     * @param username
-     * @param password
+     * 超级管理员重置密码
+     * @param userName
+     * @param encryptNewPassword
      * @return
      */
-    int resetUserPwd(String username, String password);
+    int resetUserPwd(String userName, String encryptNewPassword);
 }
+

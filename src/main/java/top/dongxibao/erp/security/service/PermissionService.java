@@ -1,20 +1,19 @@
 package top.dongxibao.erp.security.service;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import top.dongxibao.erp.entity.system.SysRole;
-import top.dongxibao.erp.security.JWTUser;
-import top.dongxibao.erp.util.ServletUtils;
+import top.dongxibao.erp.security.SecurityUtils;
+import top.dongxibao.erp.security.dto.JwtUserDto;
 
 import java.util.Set;
 
 /**
- * 自定义权限实现，ss取自SpringSecurity首字母
+ * 自定义权限实现
  *
  * @author Dongxibao
- * @date 2020-06-21
+ * @date 2021-01-11
  */
 @Service("ss")
 public class PermissionService {
@@ -28,9 +27,6 @@ public class PermissionService {
 
     private static final String PERMISSION_DELIMETER = ",";
 
-    @Autowired
-    private TokenUtils tokenUtils;
-
     /**
      * 验证用户是否具备某权限
      *
@@ -41,11 +37,11 @@ public class PermissionService {
         if (StringUtils.isEmpty(permission)) {
             return false;
         }
-        JWTUser jwtUser = tokenUtils.getLoginUser(ServletUtils.getRequest());
-        if (jwtUser == null || CollectionUtils.isEmpty(jwtUser.getPermissions())) {
+        JwtUserDto loginUser = SecurityUtils.getCurrentUser();
+        if (loginUser == null || CollectionUtils.isEmpty(loginUser.getPermissions())) {
             return false;
         }
-        return hasPermissions(jwtUser.getPermissions(), permission);
+        return hasPermissions(loginUser.getPermissions(), permission);
     }
 
     /**
@@ -68,11 +64,11 @@ public class PermissionService {
         if (StringUtils.isEmpty(permissions)) {
             return false;
         }
-        JWTUser jwtUser = tokenUtils.getLoginUser(ServletUtils.getRequest());
-        if (jwtUser == null || CollectionUtils.isEmpty(jwtUser.getPermissions())) {
+        JwtUserDto loginUser = SecurityUtils.getCurrentUser();
+        if (loginUser == null || CollectionUtils.isEmpty(loginUser.getPermissions())) {
             return false;
         }
-        Set<String> authorities = jwtUser.getPermissions();
+        Set<String> authorities = loginUser.getPermissions();
         for (String permission : permissions.split(PERMISSION_DELIMETER)) {
             if (permission != null && hasPermissions(authorities, permission)) {
                 return true;
@@ -91,13 +87,13 @@ public class PermissionService {
         if (StringUtils.isEmpty(role)) {
             return false;
         }
-        JWTUser jwtUser = tokenUtils.getLoginUser(ServletUtils.getRequest());
-        if (jwtUser == null || CollectionUtils.isEmpty(jwtUser.getUser().getRoles())) {
+        JwtUserDto loginUser = SecurityUtils.getCurrentUser();
+        if (loginUser == null || CollectionUtils.isEmpty(loginUser.getUser().getRoleList())) {
             return false;
         }
-        for (SysRole sysRole : jwtUser.getUser().getRoles()) {
+        for (SysRole sysRole : loginUser.getUser().getRoleList()) {
             String roleKey = sysRole.getRoleCode();
-            if (SUPER_ADMIN.contains(roleKey) || roleKey.contains(StringUtils.trim(role))) {
+            if (SUPER_ADMIN.equals(roleKey) || roleKey.equals(StringUtils.trim(role))) {
                 return true;
             }
         }
@@ -124,8 +120,8 @@ public class PermissionService {
         if (StringUtils.isEmpty(roles)) {
             return false;
         }
-        JWTUser jwtUser = tokenUtils.getLoginUser(ServletUtils.getRequest());
-        if (jwtUser == null || CollectionUtils.isEmpty(jwtUser.getUser().getRoles())) {
+        JwtUserDto loginUser = SecurityUtils.getCurrentUser();
+        if (loginUser == null || CollectionUtils.isEmpty(loginUser.getUser().getRoleList())) {
             return false;
         }
         for (String role : roles.split(ROLE_DELIMETER)) {

@@ -2,17 +2,17 @@ package top.dongxibao.erp.common;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import org.springframework.http.HttpStatus;
+import lombok.Data;
 
 import java.io.Serializable;
 
 /**
  * 统一返回实体类
  *
- * @param <T>
  * @author Dongxibao
- * @date 2020-06-07
+ * @date 2020-11-27
  */
+@Data
 @ApiModel("统一返回实体类")
 public class Result<T> implements Serializable {
 
@@ -28,49 +28,39 @@ public class Result<T> implements Serializable {
     @ApiModelProperty("数据")
     private T data;
 
-    public Result() {
-        this("", true);
+    public static <T> Result<T> ok() {
+        return new Result(null, true, 200, null);
     }
 
-    public Result(int code, String message) {
-        this.code = code;
-        this.message = message;
-        this.status = false;
+    public static <T> Result<T> ok(T data) {
+        return new Result(null, true, 200, data);
     }
 
-    public Result(T data) {
-        this(null, data, true);
+    public static <T> Result<T> ok(String msg, T data) {
+        return new Result(msg, true, 200, data);
     }
 
-    public Result(String message) {
-        this(message, true);
+    public static <T> Result<T> fail() {
+        return new Result(null, false, 500, null);
     }
 
-    public Result(String message, boolean status) {
-        this(message, null, status);
+    public static <T> Result<T> fail(String msg) {
+        return new Result(msg, false, 400, null);
     }
 
-    public Result(String message, T data) {
-        this(message, data, true);
+    public static <T> Result<T> fail(T data) {
+        return new Result(null, false, 500, data);
     }
 
-    public Result(String message, T data, boolean status) {
-        this.status = status;
-        this.message = message;
-        this.data = data;
-        if (this.status || this.data != null) {
-            this.code = HttpStatus.OK.value();
+    public static <T> Result<T> fail(String msg, T data) {
+        return new Result(msg, false, 500, data);
+    }
+
+    public static <T> Result<T> of(boolean status, String msg) {
+        if (status) {
+            return new Result(msg, status, 200, null);
         } else {
-            this.code = HttpStatus.INTERNAL_SERVER_ERROR.value();
-        }
-    }
-    public Result(T data, boolean status) {
-        this.status = status;
-        this.data = data;
-        if (this.status || this.data != null) {
-            this.code = HttpStatus.OK.value();
-        } else {
-            this.code = HttpStatus.INTERNAL_SERVER_ERROR.value();
+            return new Result(msg, status, 500, null);
         }
     }
 
@@ -81,7 +71,7 @@ public class Result<T> implements Serializable {
         this.code = code;
     }
 
-    public boolean getStatus() {
+    public boolean isStatus() {
         return status;
     }
 

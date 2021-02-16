@@ -1,46 +1,44 @@
 package top.dongxibao.erp.security;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import top.dongxibao.erp.exception.ServiceException;
+import top.dongxibao.erp.security.dto.JwtUserDto;
 
 /**
  * 安全服务工具类
  *
  * @author Dongxibao
- * @date 2020-06-21
+ * @date 2021-01-08
  */
 public class SecurityUtils {
     /**
      * 获取用户账户
-     */
-    public static String getUsername() {
+     **/
+    public static String getCurrentUsername() {
         try {
-            JWTUser loginUser = getLoginUser();
-            if (loginUser != null) {
-                return loginUser.getUsername();
-            } else {
+            if (getCurrentUser() == null) {
                 return null;
             }
+            return getCurrentUser().getUsername();
         } catch (Exception e) {
-            throw new ServiceException("获取用户账户异常");
+            throw new ServiceException("获取用户账户异常", HttpStatus.UNAUTHORIZED.value());
         }
     }
 
     /**
      * 获取用户
-     */
-    public static JWTUser getLoginUser() {
+     **/
+    public static JwtUserDto getCurrentUser() {
         try {
-            Authentication authentication = getAuthentication();
-            if (authentication != null && authentication.getPrincipal() instanceof JWTUser) {
-                return (JWTUser) authentication.getPrincipal();
-            } else {
+            if (getAuthentication() == null) {
                 return null;
             }
+            return (JwtUserDto) getAuthentication().getPrincipal();
         } catch (Exception e) {
-            throw new ServiceException("获取用户信息异常");
+            throw new ServiceException("获取用户信息异常", HttpStatus.UNAUTHORIZED.value());
         }
     }
 
@@ -77,10 +75,10 @@ public class SecurityUtils {
     /**
      * 是否为管理员
      *
-     * @param username 登陆账号
+     * @param userId 用户ID
      * @return 结果
      */
-    public static boolean isAdmin(String username) {
-        return username != null && "admin".equalsIgnoreCase(username);
+    public static boolean isAdmin(Long userId) {
+        return userId != null && 1L == userId;
     }
 }

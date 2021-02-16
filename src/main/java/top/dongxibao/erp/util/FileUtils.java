@@ -1,17 +1,15 @@
 package top.dongxibao.erp.util;
 
-import org.apache.commons.fileupload.FileUploadException;
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import top.dongxibao.erp.constant.FileUploadConstants;
 import top.dongxibao.erp.entity.common.AttachAssociation;
 import top.dongxibao.erp.enums.MimeTypeUtils;
 import top.dongxibao.erp.exception.ServiceException;
 import top.dongxibao.erp.mapper.common.AttachAssociationMapper;
-
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
 import java.net.URLEncoder;
@@ -55,14 +53,14 @@ public class FileUtils {
      * @throws IOException 比如读写文件出错时
      */
     public static final String upload(Long id, Integer attachType, String path, MultipartFile file,
-                                      String[] allowedExtension) throws IOException, FileUploadException {
+                                      String[] allowedExtension) throws IOException {
         String realFileName = file.getOriginalFilename();
         // 文件大小、文件名长度、文件类型 校验
         assertAllowed(file, allowedExtension);
         // 后缀
         String extension = getExtension(file);
         // 生成文件名，防止重名
-        String newFileName = IdUtils.fastSimpleUUID() + "." + extension;
+        String newFileName = IdUtil.fastSimpleUUID() + "." + extension;
         // 日期路径 即 年/月/日
         Date now = new Date();
         String datePath = DateFormatUtils.format(now, "yyyy" + File.separator + "MM" + File.separator + "dd");
@@ -87,7 +85,7 @@ public class FileUtils {
      * @param file 上传的文件
      * @return
      */
-    public static final void assertAllowed(MultipartFile file, String[] allowedExtension) throws FileUploadException {
+    public static final void assertAllowed(MultipartFile file, String[] allowedExtension) {
         int fileNamelength = file.getOriginalFilename().length();
         if (fileNamelength > FileUploadConstants.DEFAULT_FILE_NAME_LENGTH) {
             throw new ServiceException("文件名长度超出：" + FileUploadConstants.DEFAULT_FILE_NAME_LENGTH, 400);
@@ -115,7 +113,7 @@ public class FileUtils {
      */
     public static final String getExtension(MultipartFile file) {
         String extension = FilenameUtils.getExtension(file.getOriginalFilename());
-        if (StringUtils.isEmpty(extension)) {
+        if (StrUtil.isEmpty(extension)) {
             extension = MimeTypeUtils.getExtension(file.getContentType());
         }
         return extension;

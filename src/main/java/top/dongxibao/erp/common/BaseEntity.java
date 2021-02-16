@@ -1,167 +1,94 @@
 package top.dongxibao.erp.common;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+import lombok.ToString;
+import top.dongxibao.erp.annotation.*;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Entity基类
  *
  * @author Dongxibao
- * @date 2020-06-07
+ * @date 2020-11-27
  */
+@ToString(callSuper = true)
+@Data
 public class BaseEntity implements Serializable {
 
-    private static final long serialVersionUID = -2050810768296497103L;
-    /** 主键 */
+    private static final long serialVersionUID = -2050810768296497106L;
+
+    /**
+     * 主键
+     */
     @ApiModelProperty(value = "主键")
-    @TableId(type = IdType.ASSIGN_ID)
+    @AutoId
     private Long id;
-
-    /** 创建者 */
+    /**
+     * 创建者
+     */
     @ApiModelProperty(value = "创建者")
-    @TableField(fill = FieldFill.INSERT)
+    @CreateBy
     private String createBy;
-
-    /** 创建时间 */
+    /**
+     * 创建时间
+     */
     @ApiModelProperty(value = "创建时间")
-    @TableField(fill = FieldFill.INSERT)
+    @CreateTime
     private Date createTime;
-
-    /** 更新者 */
+    /**
+     * 更新者
+     */
     @ApiModelProperty(value = "更新者")
-    @TableField(fill = FieldFill.UPDATE)
+    @UpdateBy
     private String updateBy;
-
-    /** 更新时间 */
+    /**
+     * 更新时间
+     */
     @ApiModelProperty(value = "更新时间")
-    @TableField(fill = FieldFill.UPDATE)
+    @UpdateTime
     private Date updateTime;
-
-    /** 备注 */
-    @ApiModelProperty(value = "备注")
-    private String remark;
-
-    /** 逻辑删除(1:删除;0正常) */
-    @ApiModelProperty(value = "逻辑删除(1:删除;0正常)")
+    /**
+     * 逻辑删除(默认：0；删除：1)
+     */
+    @ApiModelProperty(value = "逻辑删除(默认：0；删除：1)")
     private Integer delFlag;
 
-    /** 数据权限 */
-    @ApiModelProperty(value = "数据权限")
-    @TableField(exist = false)
-    private String dataScope;
+    /**
+     * 备注
+     */
+    @ApiModelProperty("备注")
+    private String remark;
 
-    /** 开始时间 */
+    /**
+     * 开始时间
+     */
     @ApiModelProperty(value = "开始时间")
     @JsonIgnore
-    @TableField(exist = false)
     private Date beginTime;
 
-    /** 结束时间 */
+    /**
+     * 结束时间
+     */
     @ApiModelProperty(value = "结束时间")
     @JsonIgnore
-    @TableField(exist = false)
     private Date endTime;
 
-    public Long getId() {
-        return id;
-    }
+    /**
+     * 请求参数
+     */
+    @ApiModelProperty("请求参数")
+    private Map<String, Object> params;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Integer getDelFlag() {
-        return delFlag;
-    }
-
-    public void setDelFlag(Integer delFlag) {
-        this.delFlag = delFlag;
-    }
-
-    public String getCreateBy() {
-        return createBy;
-    }
-
-    public void setCreateBy(String createBy) {
-        this.createBy = createBy;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public String getUpdateBy() {
-        return updateBy;
-    }
-
-    public void setUpdateBy(String updateBy) {
-        this.updateBy = updateBy;
-    }
-
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public String getRemark() {
-        return remark;
-    }
-
-    public void setRemark(String remark) {
-        this.remark = remark;
-    }
-
-    public String getDataScope() {
-        return dataScope;
-    }
-
-    public void setDataScope(String dataScope) {
-        this.dataScope = dataScope;
-    }
-
-    public Date getBeginTime() {
-        return beginTime;
-    }
-
-    public void setBeginTime(Date beginTime) {
-        this.beginTime = beginTime;
-    }
-
-    public Date getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(Date endTime) {
-        this.endTime = endTime;
-    }
-
-    @Override
-    public String toString() {
-        return "BaseEntity{" +
-                "id=" + id +
-                ", createBy='" + createBy + '\'' +
-                ", createTime=" + createTime +
-                ", updateBy='" + updateBy + '\'' +
-                ", updateTime=" + updateTime +
-                ", remark='" + remark + '\'' +
-                ", delFlag=" + delFlag +
-                ", dataScope='" + dataScope + '\'' +
-                ", beginTime=" + beginTime +
-                ", endTime=" + endTime +
-                '}';
+    public Map<String, Object> getParams() {
+        if (params == null) {
+            params = new HashMap<>();
+        }
+        return params;
     }
 }

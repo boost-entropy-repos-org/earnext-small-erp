@@ -9,38 +9,37 @@ import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.HandlerMapping;
 import top.dongxibao.erp.annotation.Log;
 import top.dongxibao.erp.entity.system.SysLog;
-import top.dongxibao.erp.entity.system.SysLoginLog;
-import top.dongxibao.erp.enums.BusinessStatus;
-import top.dongxibao.erp.security.JWTUser;
-import top.dongxibao.erp.security.service.TokenUtils;
-import top.dongxibao.erp.service.system.SysLogService;
+import top.dongxibao.erp.mapper.system.SysLogMapper;
+import top.dongxibao.erp.util.IpUtils;
 import top.dongxibao.erp.util.JsonUtils;
 import top.dongxibao.erp.util.ServletUtils;
-import top.dongxibao.erp.util.SpringUtils;
-import top.dongxibao.erp.util.ip.IpUtils;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
-import java.util.Map;
 
 /**
  * 操作日志记录处理
  *
  * @author Dongxibao
- * @date 2020-06-07
+ * @date 2020-11-27
  */
 @Slf4j
 @Aspect
 @Component
 public class LogAspect {
-    // 配置织入点
+
+    @Autowired
+    private SysLogMapper interfaceLogMapper;
+
+    /**
+     * 配置织入点
+     */
     @Pointcut("@annotation(top.dongxibao.erp.annotation.Log)")
     public void logPointCut() {
     }
@@ -59,7 +58,7 @@ public class LogAspect {
      * 拦截异常操作
      *
      * @param joinPoint 切点
-     * @param e 异常
+     * @param e         异常
      */
     @AfterThrowing(value = "logPointCut()", throwing = "e")
     public void doAfterThrowing(JoinPoint joinPoint, Exception e) {
@@ -73,60 +72,49 @@ public class LogAspect {
             if (controllerLog == null) {
                 return;
             }
-
-            // 获取当前的用户
-            JWTUser JWTUser = SpringUtils.getBean(TokenUtils.class).getLoginUser(ServletUtils.getRequest());
-
-            // *========数据库日志=========*//
+            // *========数据库 接口日志=========*//
             SysLog sysLog = new SysLog();
-            sysLog.setStatus(BusinessStatus.SUCCESS.ordinal());
+            sysLog.setBusinessType(controllerLog.businessType().ordinal());
+            sysLog.setStatus(1);
             // 请求的地址
             String ip = IpUtils.getIpAddr(ServletUtils.getRequest());
-            sysLog.setLogIp(ip);
+            sysLog.setRequestIp(ip);
             // 返回参数
-            sysLog.setResultParam(JsonUtils.obj2Json(jsonResult));
-
-            sysLog.setLogUrl(ServletUtils.getRequest().getRequestURI());
-            if (JWTUser != null) {
-                sysLog.setOperName(JWTUser.getUsername());
+            if (jsonResult != null) {
+                sysLog.setResultParam(JsonUtils.obj2Json(jsonResult));
             }
-
             if (e != null) {
-                sysLog.setStatus(BusinessStatus.FAIL.ordinal());
-                sysLog.setErrorMsg(StringUtils.substring(e.getMessage(), 0, 3000));
+                sysLog.setStatus(0);
+                sysLog.setMessage(StringUtils.substring(e.getMessage(), 0, 190));
             }
             // 设置方法名称
             String className = joinPoint.getTarget().getClass().getName();
             String methodName = joinPoint.getSignature().getName();
             sysLog.setMethod(className + "." + methodName + "()");
             // 设置请求方式
-            sysLog.setRequestMethod(ServletUtils.getRequest().getMethod());
+            if (ServletUtils.getRequest() != null) {
+                sysLog.setRequestMethod(ServletUtils.getRequest().getMethod());
+            }
             // 处理设置注解上的参数
             getControllerMethodDescription(joinPoint, controllerLog, sysLog);
             // 保存数据库
-            SpringUtils.getBean(SysLogService.class).save(sysLog);
+            interfaceLogMapper.insert(sysLog);
         } catch (Exception exp) {
             // 记录本地异常日志
-            log.error("==前置通知异常==");
-            log.error("异常信息:{}", exp.getMessage());
-            exp.printStackTrace();
+            log.error("doAfterThrowing 异常信息:{};{}", exp, exp.getMessage());
         }
     }
 
     /**
      * 获取注解中对方法的描述信息 用于Controller层注解
      *
-     * @param log 日志
-     * @param sysLog 操作日志
+     * @param log    日志
+     * @param sysLog 接口日志
      * @throws Exception
      */
     public void getControllerMethodDescription(JoinPoint joinPoint, Log log, SysLog sysLog) throws Exception {
-        // 设置action动作
-        sysLog.setBusinessType(log.businessType().ordinal());
         // 设置标题
-        sysLog.setTitle(log.title());
-        // 设置操作人类别
-        sysLog.setOperatorType(log.operatorType().ordinal());
+        sysLog.setModuleCode(log.title());
         // 是否需要保存request，参数和值
         if (log.isSaveRequestData()) {
             // 获取参数的信息，传入到数据库中。
@@ -141,12 +129,14 @@ public class LogAspect {
      */
     private void setRequestValue(JoinPoint joinPoint, SysLog sysLog) {
         String requestMethod = sysLog.getRequestMethod();
-        if (HttpMethod.PUT.name().equals(requestMethod) || HttpMethod.POST.name().equals(requestMethod)) {
+        if (HttpMethod.PUT.name().equals(requestMethod) || HttpMethod.POST.name().equals(requestMethod) && joinPoint.getArgs() != null) {
             String params = argsArrayToString(joinPoint.getArgs());
             sysLog.setRequestParam(StringUtils.substring(params, 0, 3000));
         } else {
-            String paramsMap = ServletUtils.getRequest().getQueryString();
-            sysLog.setRequestParam(StringUtils.substring(paramsMap, 0, 3000));
+            if (ServletUtils.getRequest() != null && ServletUtils.getRequest().getQueryString() != null) {
+                String paramsMap = ServletUtils.getRequest().getQueryString();
+                sysLog.setRequestParam(StringUtils.substring(paramsMap, 0, 3000));
+            }
         }
     }
 

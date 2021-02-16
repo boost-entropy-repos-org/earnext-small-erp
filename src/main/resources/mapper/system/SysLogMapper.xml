@@ -1,39 +1,41 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper
-        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
 <mapper namespace="top.dongxibao.erp.mapper.system.SysLogMapper">
 
     <resultMap type="top.dongxibao.erp.entity.system.SysLog" id="BaseResultMap">
         <result property="id" column="id"/>
-        <result property="title" column="title"/>
-        <result property="businessType" column="business_type"/>
-        <result property="method" column="method"/>
-        <result property="requestMethod" column="request_method"/>
-        <result property="operatorType" column="operator_type"/>
-        <result property="operName" column="oper_name"/>
-        <result property="logUrl" column="log_url"/>
-        <result property="logIp" column="log_ip"/>
         <result property="requestParam" column="request_param"/>
         <result property="resultParam" column="result_param"/>
+        <result property="moduleCode" column="module_code"/>
         <result property="status" column="status"/>
-        <result property="errorMsg" column="error_msg"/>
-        <result property="delFlag" column="del_flag"/>
+        <result property="message" column="message"/>
+        <result property="method" column="method"/>
+        <result property="requestIp" column="request_ip"/>
+        <result property="requestMethod" column="request_method"/>
         <result property="remark" column="remark"/>
-        <result property="createBy" column="create_by"/>
         <result property="createTime" column="create_time"/>
-        <result property="updateBy" column="update_by"/>
         <result property="updateTime" column="update_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="businessType" column="business_type"/>
     </resultMap>
 
-    <sql id="selectFields">
-         a.id, a.title, a.business_type, a.method, a.request_method, a.operator_type, a.oper_name, a.log_url, a.log_ip, a.request_param, a.result_param, a.status, a.error_msg, a.del_flag, a.remark, a.create_by, a.create_time, a.update_by, a.update_time
+    <sql id="BaseColumns">
+        a.id,a.request_param,a.result_param,a.module_code,a.status,a.message,a.method,a.request_ip,a.request_method,a.remark,a.create_time,a.update_time,a.create_by,a.update_by,a.business_type
     </sql>
 
+    <select id="getById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="BaseColumns"/>
+        from sys_log a
+        where a.id = #{id}
+    </select>
+
     <select id="selectByCondition" parameterType="top.dongxibao.erp.entity.system.SysLog" resultMap="BaseResultMap">
-        SELECT
-        <include refid="selectFields"/>
-        FROM sys_log a
+        select
+        <include refid="BaseColumns"/>
+        from sys_log a
         <where>
             <if test="beginTime != null"><!-- 开始时间检索 -->
                 AND <![CDATA[ a.create_time >= #{beginTime} ]]>
@@ -41,8 +43,94 @@
             <if test="endTime != null"><!-- 结束时间检索 -->
                 AND <![CDATA[ a.create_time <= #{endTime} ]]>
             </if>
-            <!-- 数据范围过滤 -->
-            ${dataScope}
+            <if test="id != null ">and a.id = #{id}</if>
+            <if test="requestParam != null  and requestParam != '' ">and a.request_param = #{requestParam}</if>
+            <if test="resultParam != null  and resultParam != '' ">and a.result_param = #{resultParam}</if>
+            <if test="moduleCode != null  and moduleCode != '' ">and a.module_code = #{moduleCode}</if>
+            <if test="status != null ">and a.status = #{status}</if>
+            <if test="message != null  and message != '' ">and a.message = #{message}</if>
+            <if test="method != null  and method != '' ">and a.method = #{method}</if>
+            <if test="requestIp != null  and requestIp != '' ">and a.request_ip = #{requestIp}</if>
+            <if test="requestMethod != null  and requestMethod != '' ">and a.request_method = #{requestMethod}</if>
+            <if test="remark != null  and remark != '' ">and a.remark = #{remark}</if>
+            <if test="createTime != null ">and a.create_time = #{createTime}</if>
+            <if test="updateTime != null ">and a.update_time = #{updateTime}</if>
+            <if test="createBy != null  and createBy != '' ">and a.create_by = #{createBy}</if>
+            <if test="updateBy != null  and updateBy != '' ">and a.update_by = #{updateBy}</if>
+            <if test="businessType != null ">and a.business_type = #{businessType}</if>
         </where>
     </select>
+
+    <insert id="insert" parameterType="top.dongxibao.erp.entity.system.SysLog">
+        insert into sys_log
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="requestParam != null">request_param,</if>
+            <if test="resultParam != null">result_param,</if>
+            <if test="moduleCode != null">module_code,</if>
+            <if test="status != null">status,</if>
+            <if test="message != null">message,</if>
+            <if test="method != null">method,</if>
+            <if test="requestIp != null">request_ip,</if>
+            <if test="requestMethod != null">request_method,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="businessType != null">business_type,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="requestParam != null">#{requestParam},</if>
+            <if test="resultParam != null">#{resultParam},</if>
+            <if test="moduleCode != null">#{moduleCode},</if>
+            <if test="status != null">#{status},</if>
+            <if test="message != null">#{message},</if>
+            <if test="method != null">#{method},</if>
+            <if test="requestIp != null">#{requestIp},</if>
+            <if test="requestMethod != null">#{requestMethod},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="businessType != null">#{businessType},</if>
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="top.dongxibao.erp.entity.system.SysLog">
+        update sys_log
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="id != null">id = #{id},</if>
+            <if test="requestParam != null">request_param = #{requestParam},</if>
+            <if test="resultParam != null">result_param = #{resultParam},</if>
+            <if test="moduleCode != null">module_code = #{moduleCode},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="message != null">message = #{message},</if>
+            <if test="method != null">method = #{method},</if>
+            <if test="requestIp != null">request_ip = #{requestIp},</if>
+            <if test="requestMethod != null">request_method = #{requestMethod},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="businessType != null">business_type = #{businessType},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteById" parameterType="java.lang.Long">
+        delete from sys_log where id = #{id}
+    </delete>
+
+    <delete id="deleteBatchIds" parameterType="java.lang.String">
+        delete from sys_log where id in
+        <if test="ids != null">
+            <foreach item="id" collection="ids" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+    </delete>
 </mapper>

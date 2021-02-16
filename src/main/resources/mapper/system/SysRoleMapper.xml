@@ -1,7 +1,6 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper
-        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
 <mapper namespace="top.dongxibao.erp.mapper.system.SysRoleMapper">
 
     <resultMap type="top.dongxibao.erp.entity.system.SysRole" id="BaseResultMap">
@@ -11,40 +10,143 @@
         <result property="roleSort" column="role_sort"/>
         <result property="dataScope" column="data_scope"/>
         <result property="status" column="status"/>
-        <result property="delFlag" column="del_flag"/>
         <result property="remark" column="remark"/>
         <result property="createBy" column="create_by"/>
         <result property="createTime" column="create_time"/>
         <result property="updateBy" column="update_by"/>
         <result property="updateTime" column="update_time"/>
+        <result property="delFlag" column="del_flag"/>
     </resultMap>
 
-    <sql id="selectFields">
-         a.id, a.role_name, a.role_code, a.role_sort, a.data_scope, a.status, a.del_flag, a.remark, a.create_by, a.create_time, a.update_by, a.update_time
+    <sql id="BaseColumns">
+        a.del_flag,
+        a.id,a.role_name,a.role_code,a.role_sort,a.data_scope,a.status,a.remark,a.create_by,a.create_time,a.update_by,a.update_time
     </sql>
 
+    <sql id="selectRoleVo">
+	    select distinct <include refid="BaseColumns"/>
+        from sys_role a
+	        left join sys_user_role ur on ur.role_id = a.id
+	        left join sys_user u on u.id = ur.user_id
+	        left join sys_dept d on u.dept_id = d.id
+    </sql>
+
+    <select id="getById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        distinct
+        <include refid="BaseColumns"/>
+        from sys_role a
+        where a.id = #{id}
+        and a.del_flag = 0
+    </select>
+
     <select id="selectByCondition" parameterType="top.dongxibao.erp.entity.system.SysRole" resultMap="BaseResultMap">
-        SELECT
-        <include refid="selectFields"/>
-        FROM sys_role a
+        select
+        distinct
+        <include refid="BaseColumns"/>
+        from sys_role a
+        left join sys_user_role b
+        on a.id = b.role_id
         <where>
+            and a.del_flag = 0
             <if test="beginTime != null"><!-- 开始时间检索 -->
                 AND <![CDATA[ a.create_time >= #{beginTime} ]]>
             </if>
             <if test="endTime != null"><!-- 结束时间检索 -->
                 AND <![CDATA[ a.create_time <= #{endTime} ]]>
             </if>
-            <!-- 数据范围过滤 -->
-            ${dataScope}
+            <if test="id != null ">and a.id = #{id}</if>
+            <if test="userId != null ">and b.user_id = #{userId}</if>
+            <if test="roleName != null  and roleName != '' ">and a.role_name like #{roleName}</if>
+            <if test="roleCode != null  and roleCode != '' ">and a.role_code like #{roleCode}</if>
+            <if test="status != null ">and a.status = #{status}</if>
         </where>
     </select>
-    <select id="selectRolePermissionByUserId" parameterType="java.lang.Long" resultMap="BaseResultMap">
-            select distinct r.role_id, r.role_name, r.role_code, r.role_sort, r.data_scope,
-            r.status, r.del_flag, r.create_time, r.remark
-            from sys_role r
-	        left join sys_user_role ur on ur.role_id = r.role_id
-	        left join sys_user u on u.id = ur.user_id
-	        left join sys_dept d on u.dept_id = d.id
-            WHERE r.del_flag = '0' and ur.user_id = #{userId}
+    <select id="checkSysRoleExist" resultType="top.dongxibao.erp.entity.system.SysRole">
+        select
+        <include refid="BaseColumns"/>
+        from sys_role a
+        <where>
+            a.role_code = #{roleCode}
+            and a.del_flag = 0
+            <if test="id != null">
+                AND a.id != #{id}
+            </if>
+        </where>
+        limit 1
     </select>
+    <select id="selectRolePermissionByUserId" resultType="java.lang.String">
+        select distinct role_code
+        from sys_role r
+        left join sys_user_role ur on ur.role_id = r.id
+        left join sys_user u on u.id = ur.user_id
+	    WHERE ur.user_id = #{userId} and r.del_flag = 0
+    </select>
+    <select id="selectRoleById" resultType="top.dongxibao.erp.entity.system.SysRole">
+        <include refid="selectRoleVo"/>
+        where a.id = #{roleId} and a.del_flag = 0
+    </select>
+
+    <insert id="insert" parameterType="top.dongxibao.erp.entity.system.SysRole">
+        insert into sys_role
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="roleName != null">role_name,</if>
+            <if test="roleCode != null">role_code,</if>
+            <if test="roleSort != null">role_sort,</if>
+            <if test="dataScope != null">data_scope,</if>
+            <if test="status != null">status,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            del_flag
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="roleName != null">#{roleName},</if>
+            <if test="roleCode != null">#{roleCode},</if>
+            <if test="roleSort != null">#{roleSort},</if>
+            <if test="dataScope != null">#{dataScope},</if>
+            <if test="status != null">#{status},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            0
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="top.dongxibao.erp.entity.system.SysRole">
+        update sys_role
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="id != null">id = #{id},</if>
+            <if test="roleName != null">role_name = #{roleName},</if>
+            <if test="roleCode != null">role_code = #{roleCode},</if>
+            <if test="roleSort != null">role_sort = #{roleSort},</if>
+            <if test="dataScope != null">data_scope = #{dataScope},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="deleteById" parameterType="java.lang.Long">
+        update sys_role set del_flag = 1 where id = #{id}
+    </update>
+
+    <update id="deleteBatchIds" parameterType="java.lang.Long">
+        update sys_role set del_flag = 1 where id in
+        <if test="ids != null">
+            <foreach item="id" collection="ids" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+    </update>
 </mapper>

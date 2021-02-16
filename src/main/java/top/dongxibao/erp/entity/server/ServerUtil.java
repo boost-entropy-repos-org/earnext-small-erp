@@ -10,7 +10,7 @@ import oshi.software.os.FileSystem;
 import oshi.software.os.OSFileStore;
 import oshi.software.os.OperatingSystem;
 import oshi.util.Util;
-import top.dongxibao.erp.util.ip.IpUtils;
+import top.dongxibao.erp.util.IpUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -172,7 +172,7 @@ public class ServerUtil {
      */
     private void setSysFiles(OperatingSystem os) {
         FileSystem fileSystem = os.getFileSystem();
-        OSFileStore[] fsArray = fileSystem.getFileStores();
+        List<OSFileStore> fsArray = fileSystem.getFileStores();
         for (OSFileStore fs : fsArray) {
             long free = fs.getUsableSpace();
             long total = fs.getTotalSpace();

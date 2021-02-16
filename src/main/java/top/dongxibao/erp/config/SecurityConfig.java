@@ -9,56 +9,39 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.session.SessionRegistry;
-import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.session.ConcurrentSessionFilter;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.web.filter.CorsFilter;
 import top.dongxibao.erp.security.filter.JwtAuthenticationTokenFilter;
 import top.dongxibao.erp.security.handle.AuthenticationEntryPointImpl;
 import top.dongxibao.erp.security.handle.LogoutSuccessHandlerImpl;
-
-import javax.annotation.Resource;
 
 /**
  * spring security配置
  *
  * @author Dongxibao
- * @date 2020-06-14
+ * @date 2021-1-7
  */
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     /** 不拦截的路径 */
-    private static final String[] PERMIT_WEB_URLS = {"/redisson/test01"};
-
-    /**
-     * 自定义用户认证逻辑
-     */
+    private static final String[] PERMIT_WEB_URLS = {"/static/modeler/model/*/save"};
     @Autowired
     private UserDetailsService userDetailsService;
-
-    /**
-     * 认证失败处理类
-     */
     @Autowired
     private AuthenticationEntryPointImpl unauthorizedHandler;
-
-    /**
-     * 退出处理类
-     */
     @Autowired
     private LogoutSuccessHandlerImpl logoutSuccessHandler;
-
-    /**
-     * token认证过滤器
-     */
     @Autowired
     private JwtAuthenticationTokenFilter authenticationTokenFilter;
+    @Autowired
+    private CorsFilter corsFilter;
 
     /**
-     * 解决 无法直接注入 AuthenticationManager
+     * 注入 AuthenticationManager
      *
      * @return
      * @throws Exception
@@ -69,56 +52,44 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return super.authenticationManagerBean();
     }
 
-    /**
-     * anyRequest          |   匹配所有请求路径
-     * access              |   SpringEl表达式结果为true时可以访问
-     * anonymous           |   匿名可以访问
-     * denyAll             |   用户不能访问
-     * fullyAuthenticated  |   用户完全认证可以访问（非remember-me下自动登录）
-     * hasAnyAuthority     |   如果有参数，参数表示权限，则其中任何一个权限可以访问
-     * hasAnyRole          |   如果有参数，参数表示角色，则其中任何一个角色可以访问
-     * hasAuthority        |   如果有参数，参数表示权限，则其权限可以访问
-     * hasIpAddress        |   如果有参数，参数表示IP地址，如果用户IP和参数匹配，则可以访问
-     * hasRole             |   如果有参数，参数表示角色，则其角色可以访问
-     * permitAll           |   用户可以任意访问
-     * rememberMe          |   允许通过remember-me登录的用户访问
-     * authenticated       |   用户登录后可访问
-     */
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
-            // CSRF禁用，因为不使用session
-            .csrf().disable()
-            // 认证失败处理类
-            .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
-            // 基于token，所以不需要session
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-            // 过滤请求
-            .authorizeRequests()
-            // 对于登录login 验证码captchaImage 允许匿名访问
-            .antMatchers("/login", "/captchaImage").anonymous()
-            .antMatchers(
-                    HttpMethod.GET,
-                    "/*.html",
-                    "/**/*.html",
-                    "/**/*.css",
-                    "/**/*.js"
-            ).permitAll()
-            .antMatchers("/profile/**").anonymous()
-            .antMatchers("/swagger-ui.html").anonymous()
-            .antMatchers("/swagger-resources/**").anonymous()
-            .antMatchers("/webjars/**").anonymous()
-            .antMatchers("/*/api-docs").anonymous()
-            .antMatchers("/druid/**").anonymous()
-            .antMatchers(PERMIT_WEB_URLS).permitAll()
-            // 除上面外的所有请求全部需要鉴权认证
-            .anyRequest().authenticated()
-            .and()
-            .headers().frameOptions().disable();
+                // CSRF禁用，因为不使用session
+                .csrf().disable()
+                .exceptionHandling().authenticationEntryPoint(unauthorizedHandler).and()
+                // 不需要session
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+                // 过滤请求
+                .authorizeRequests()
+                // 对于登录login 验证码captcha_image 允许匿名访问
+                .antMatchers("/login", "/captcha_image").anonymous()
+                .antMatchers(
+                        HttpMethod.GET,
+                        "/*.html",
+                        "/**/*.html",
+                        "/**/*.css",
+                        "/**/*.js",
+                        "/static/modeler/**"
+                ).permitAll()
+                .antMatchers(PERMIT_WEB_URLS).permitAll()
+                .antMatchers("/swagger-ui.html").anonymous()
+                .antMatchers("/doc.html").anonymous()
+                .antMatchers("/swagger-resources/**").anonymous()
+                .antMatchers("/webjars/**").anonymous()
+                .antMatchers("/*/api-docs").anonymous()
+                // 除上面外的所有请求全部需要鉴权认证
+                .anyRequest().authenticated()
+                .and()
+                .headers().frameOptions().disable();
         httpSecurity.logout().logoutUrl("/logout").logoutSuccessHandler(logoutSuccessHandler);
         // 添加JWT filter
         httpSecurity.addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter.class);
+        // 添加CORS filter
+        httpSecurity.addFilterBefore(corsFilter, JwtAuthenticationTokenFilter.class);
+        httpSecurity.addFilterBefore(corsFilter, LogoutFilter.class);
     }
+
 
     /**
      * 强散列哈希加密实现
@@ -127,7 +98,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
     /**
      * 身份认证接口
      */

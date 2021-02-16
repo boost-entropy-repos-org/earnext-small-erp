@@ -7,13 +7,18 @@ import org.apache.commons.lang3.StringUtils;
  * sql操作工具类
  *
  * @author Dongxibao
- * @date 2020-06-14
+ * @date 2020-11-27
  */
 public class SqlUtil {
     /**
      * 仅支持字母、数字、下划线、空格、逗号、点（支持多个字段排序）
      */
     public static String SQL_PATTERN = "[a-zA-Z0-9_\\ \\,\\.]+";
+
+
+    public static String enclose(Object s) {
+        return "'" + s + "'";
+    }
 
     /**
      * 检查字符，防止注入绕过
@@ -23,6 +28,10 @@ public class SqlUtil {
             return StringUtils.EMPTY;
         }
         return value;
+    }
+
+    public static String getTableNameBySql(String sql) {
+        return sql.split("from")[1].split("where")[0];
     }
 
     /**

@@ -13,15 +13,15 @@ import java.util.Set;
  * 用户权限处理
  *
  * @author Dongxibao
- * @date 2020-06-21
+ * @date 2021-01-08
  */
 @Component
 public class SysPermissionService {
     @Autowired
-    private SysRoleService sysRoleService;
+    private SysRoleService roleService;
 
     @Autowired
-    private SysMenuService sysMenuService;
+    private SysMenuService menuService;
 
     /**
      * 获取角色数据权限
@@ -35,14 +35,13 @@ public class SysPermissionService {
         if (user.isAdmin()) {
             roles.add("admin");
         } else {
-            // TODO 测试
-            roles.addAll(sysRoleService.selectRolePermissionByUserId(user.getId()));
+            roles.addAll(roleService.selectRolePermissionByUserId(user.getId()));
         }
         return roles;
     }
 
     /**
-     * 获取菜单数据权限
+     * 获取菜单数据权限代码
      *
      * @param user 用户信息
      * @return 菜单权限信息
@@ -53,8 +52,7 @@ public class SysPermissionService {
         if (user.isAdmin()) {
             perms.add("*:*:*");
         } else {
-            // TODO 测试
-            perms.addAll(sysMenuService.selectMenuPermsByUserId(user.getId()));
+            perms.addAll(menuService.selectMenuPermsByUserId(user.getId()));
         }
         return perms;
     }

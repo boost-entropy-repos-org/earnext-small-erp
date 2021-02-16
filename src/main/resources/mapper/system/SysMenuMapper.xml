@@ -1,7 +1,6 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper
-        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
 <mapper namespace="top.dongxibao.erp.mapper.system.SysMenuMapper">
 
     <resultMap type="top.dongxibao.erp.entity.system.SysMenu" id="BaseResultMap">
@@ -10,54 +9,210 @@
         <result property="permsCode" column="perms_code"/>
         <result property="parentId" column="parent_id"/>
         <result property="orderNum" column="order_num"/>
-        <result property="url" column="url"/>
+        <result property="routingPath" column="routing_path"/>
+        <result property="component" column="component"/>
         <result property="menuType" column="menu_type"/>
         <result property="visible" column="visible"/>
         <result property="icon" column="icon"/>
-        <result property="delFlag" column="del_flag"/>
         <result property="remark" column="remark"/>
         <result property="createBy" column="create_by"/>
         <result property="createTime" column="create_time"/>
         <result property="updateBy" column="update_by"/>
         <result property="updateTime" column="update_time"/>
+        <result property="formConfigId" column="form_config_id"/>
+        <result property="parentName" column="parent_name"/>
+        <result property="label" column="label"/>
+        <result property="delFlag" column="del_flag"/>
     </resultMap>
 
-    <sql id="selectFields">
-         a.id, a.menu_name, a.perms_code, a.parent_id, a.order_num, a.url, a.menu_type, a.visible, a.icon, a.del_flag, a.remark, a.create_by, a.create_time, a.update_by, a.update_time
+    <sql id="BaseColumns">
+        a.form_config_id,a.parent_name,a.menu_name label,a.del_flag,
+        a.id,a.menu_name,a.perms_code,a.parent_id,a.order_num,a.routing_path,a.component,a.menu_type,a.visible,a.icon,a.remark,a.create_by,a.create_time,a.update_by,a.update_time
     </sql>
 
+    <select id="getById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="BaseColumns"/>
+        from sys_menu a
+        where a.id = #{id}
+        and a.del_flag = 0
+    </select>
+
     <select id="selectByCondition" parameterType="top.dongxibao.erp.entity.system.SysMenu" resultMap="BaseResultMap">
-        SELECT
-        <include refid="selectFields"/>
-        FROM sys_menu a
+        select
+        <include refid="BaseColumns"/>
+        from sys_menu a
         <where>
+            and a.del_flag = 0
             <if test="beginTime != null"><!-- 开始时间检索 -->
                 AND <![CDATA[ a.create_time >= #{beginTime} ]]>
             </if>
             <if test="endTime != null"><!-- 结束时间检索 -->
                 AND <![CDATA[ a.create_time <= #{endTime} ]]>
             </if>
-            <!-- 数据范围过滤 -->
-            ${dataScope}
+            <if test="id != null ">and a.id = #{id}</if>
+            <if test="menuName != null  and menuName != '' ">and a.menu_name like '%'+ #{menuName} +'%'</if>
+            <if test="permsCode != null  and permsCode != '' ">and a.perms_code like '%'+ #{permsCode} +'%'</if>
+            <if test="menuType != null  and menuType != '' ">and a.menu_type like '%'+ #{menuType} +'%'</if>
+            <if test="visible != null ">and a.visible = #{visible}</if>
         </where>
     </select>
+
+    <select id="checkSysMenu" parameterType="top.dongxibao.erp.entity.system.SysMenu" resultMap="BaseResultMap">
+        SELECT
+        <include refid="BaseColumns"/>
+        FROM sys_menu a
+        <where>
+            a.perms_code = #{permsCode}
+            and a.menu_type = 'F'
+            <if test="id != null">
+                AND a.id != #{id}
+            </if>
+            and a.del_flag = 0
+        </where>
+        limit 1
+    </select>
+
+    <select id="checkRoutingPath" parameterType="top.dongxibao.erp.entity.system.SysMenu" resultMap="BaseResultMap">
+        SELECT
+        <include refid="BaseColumns"/>
+        FROM sys_menu a
+        <where>
+            a.routing_path = #{routingPath}
+            <if test="id != null">
+                AND a.id != #{id}
+            </if>
+            and a.del_flag = 0
+        </where>
+        limit 1
+    </select>
+    <select id="hasChildByMenuId" resultType="java.lang.Integer">
+        select count(*) from sys_menu where parent_id = #{id} and del_flag = 0
+    </select>
     <select id="selectMenuPermsByUserId" resultType="java.lang.String">
-        select distinct m.perms_code
+       select distinct m.perms_code
 		from sys_menu m
 			 left join sys_role_menu rm on m.id = rm.menu_id
 			 left join sys_user_role ur on rm.role_id = ur.role_id
 			 left join sys_role r on r.id = ur.role_id
-		where r.status = '0' and ur.user_id = #{userId}
+		where r.status = 0 and ur.user_id = #{userId}
+		and m.del_flag = 0
     </select>
-    <select id="checkSysMenu" resultType="top.dongxibao.erp.entity.system.SysMenu">
-        SELECT
-        <include refid="selectFields"/>
-        FROM sys_menu a
-        <where>
-            a.perms_code = #{permsCode}
-            <if test="id != null">
-                AND a.id != #{id}
-            </if>
-        </where>
+    <select id="selectMenuListByUserId" resultMap="BaseResultMap">
+        select distinct <include refid="BaseColumns"/>
+        from sys_menu a
+        left join sys_role_menu rm on a.id = rm.menu_id
+        left join sys_user_role ur on rm.role_id = ur.role_id
+        left join sys_role ro on ur.role_id = ro.id
+        where ur.user_id = #{params.userId}
+        and a.del_flag = 0
+        <if test="menuName != null and menuName != ''">
+            AND a.menu_name like #{menuName}
+        </if>
+        <if test="visible != null and visible != ''">
+            AND a.visible = #{visible}
+        </if>
+        order by a.parent_id
     </select>
+    <select id="selectMenuListByRoleId" resultType="java.lang.Long">
+        select a.id
+        from sys_menu a
+        left join sys_role_menu rm on a.id = rm.menu_id
+        where rm.role_id = #{roleId}
+        and a.del_flag = 0
+        and a.id not in (select m.parent_id from sys_menu m inner join sys_role_menu rm on m.id = rm.menu_id and rm.role_id = #{roleId} and m.del_flag = 0)
+        order by a.parent_id
+    </select>
+    <select id="selectMenuTreeByUserId" resultMap="BaseResultMap">
+        select distinct <include refid="BaseColumns"/>
+		from sys_menu a
+			 left join sys_role_menu rm on a.id = rm.menu_id
+			 left join sys_user_role ur on rm.role_id = ur.role_id
+			 left join sys_role ro on ur.role_id = ro.id
+			 left join sys_user u on ur.user_id = u.id
+		where u.id = #{userId} and a.menu_type in ('M', 'C') and a.visible	= 1
+        and a.del_flag = 0
+		order by a.parent_id,a.order_num
+    </select>
+
+    <insert id="insert" parameterType="top.dongxibao.erp.entity.system.SysMenu">
+        insert into sys_menu
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">id,</if>
+            <if test="menuName != null">menu_name,</if>
+            <if test="permsCode != null">perms_code,</if>
+            <if test="parentId != null">parent_id,</if>
+            <if test="orderNum != null">order_num,</if>
+            <if test="routingPath != null">routing_path,</if>
+            <if test="component != null">component,</if>
+            <if test="menuType != null">menu_type,</if>
+            <if test="visible != null">visible,</if>
+            <if test="icon != null">icon,</if>
+            <if test="remark != null">remark,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="formConfigId != null">form_config_id,</if>
+            <if test="parentName != null">parent_name,</if>
+            del_flag
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">#{id},</if>
+            <if test="menuName != null">#{menuName},</if>
+            <if test="permsCode != null">#{permsCode},</if>
+            <if test="parentId != null">#{parentId},</if>
+            <if test="orderNum != null">#{orderNum},</if>
+            <if test="routingPath != null">#{routingPath},</if>
+            <if test="component != null">#{component},</if>
+            <if test="menuType != null">#{menuType},</if>
+            <if test="visible != null">#{visible},</if>
+            <if test="icon != null">#{icon},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="formConfigId != null">#{formConfigId},</if>
+            <if test="parentName != null">#{parentName},</if>
+            0
+        </trim>
+    </insert>
+
+    <update id="update" parameterType="top.dongxibao.erp.entity.system.SysMenu">
+        update sys_menu
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="id != null">id = #{id},</if>
+            <if test="menuName != null">menu_name = #{menuName},</if>
+            <if test="permsCode != null">perms_code = #{permsCode},</if>
+            <if test="parentId != null">parent_id = #{parentId},</if>
+            <if test="orderNum != null">order_num = #{orderNum},</if>
+            <if test="routingPath != null">routing_path = #{routingPath},</if>
+            <if test="component != null">component = #{component},</if>
+            <if test="menuType != null">menu_type = #{menuType},</if>
+            <if test="visible != null">visible = #{visible},</if>
+            <if test="icon != null">icon = #{icon},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="formConfigId != null">form_config_id = #{formConfigId},</if>
+            <if test="parentName != null">parent_name = #{parentName},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <update id="deleteById" parameterType="java.lang.Long">
+        update sys_menu set del_flag = 1 where id = #{id}
+    </update>
+
+    <update id="deleteBatchIds" parameterType="java.lang.Long">
+        update sys_menu set del_flag = 1 where id in
+        <if test="ids != null">
+            <foreach item="id" collection="ids" open="(" separator="," close=")">
+                #{id}
+            </foreach>
+        </if>
+    </update>
 </mapper>

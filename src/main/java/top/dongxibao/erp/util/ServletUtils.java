@@ -13,7 +13,7 @@ import java.io.IOException;
  * 客户端工具类
  *
  * @author Dongxibao
- * @date 2020-06-21
+ * @date 2020-11-27
  */
 public class ServletUtils {
 
@@ -21,14 +21,22 @@ public class ServletUtils {
      * 获取request
      */
     public static HttpServletRequest getRequest() {
-        return getRequestAttributes().getRequest();
+        ServletRequestAttributes requestAttributes = getRequestAttributes();
+        if (requestAttributes == null) {
+            return null;
+        }
+        return requestAttributes.getRequest();
     }
 
     /**
      * 获取response
      */
     public static HttpServletResponse getResponse() {
-        return getRequestAttributes().getResponse();
+        ServletRequestAttributes requestAttributes = getRequestAttributes();
+        if (requestAttributes == null) {
+            return null;
+        }
+        return requestAttributes.getResponse();
     }
 
     /**
@@ -40,6 +48,9 @@ public class ServletUtils {
 
     public static ServletRequestAttributes getRequestAttributes() {
         RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
+        if (attributes == null) {
+            return null;
+        }
         return (ServletRequestAttributes) attributes;
     }
 
@@ -79,14 +90,37 @@ public class ServletUtils {
         }
 
         String uri = request.getRequestURI();
-        if (StrUtils.inStringIgnoreCase(uri, ".json", ".xml")) {
+        if (inStringIgnoreCase(uri, ".json", ".xml")) {
             return true;
         }
 
         String ajax = request.getParameter("__ajax");
-        if (StrUtils.inStringIgnoreCase(ajax, "json", "xml")) {
+        if (inStringIgnoreCase(ajax, "json", "xml")) {
             return true;
         }
         return false;
+    }
+    /**
+     * 是否包含字符串
+     *
+     * @param str 验证字符串
+     * @param strs 字符串组
+     * @return 包含返回true
+     */
+    public static boolean inStringIgnoreCase(String str, String... strs) {
+        if (str != null && strs != null) {
+            for (String s : strs) {
+                if (str.equalsIgnoreCase(trim(s))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    /**
+     * 去空格
+     */
+    public static String trim(String str) {
+        return (str == null ? "" : str.trim());
     }
 }

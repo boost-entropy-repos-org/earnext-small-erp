@@ -1,113 +1,140 @@
 package top.dongxibao.erp.service.system.impl;
 
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import top.dongxibao.erp.entity.system.SysDept;
-import top.dongxibao.erp.entity.system.SysDept;
+import top.dongxibao.erp.entity.system.TreeSelect;
 import top.dongxibao.erp.mapper.system.SysDeptMapper;
+import top.dongxibao.erp.mapper.system.SysRoleMapper;
 import top.dongxibao.erp.service.system.SysDeptService;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * 部门Service业务层处理
+ * 部门表
  *
  * @author Dongxibao
- * @date 2020-06-14
+ * @date 2021-01-12
  */
-@Service
-public class SysDeptServiceImpl extends ServiceImpl<SysDeptMapper, SysDept> implements SysDeptService {
-    @Override
-    public List<SysDept> selectByCondition(SysDept sysDept) {
-        return baseMapper.selectByCondition(sysDept);
-    }
+@Service("sysDeptService")
+public class SysDeptServiceImpl implements SysDeptService {
+    @Autowired
+    private SysDeptMapper sysDeptMapper;
+    @Autowired
+    private SysRoleMapper sysRoleMapper;
 
     @Override
-    public List<SysDept> selectTree() {
-        // 顶级parentId为0
-        List<SysDept> sysDepts = baseMapper.selectList(null);
-        return buildTree(sysDepts);
-    }
-
-    // TODO：新增修改 祖级节点修改待验证
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public boolean save(SysDept entity) {
-        // 父节点
-        SysDept parent = baseMapper.selectById(entity.getParentId());
-        if (parent == null) {
-        } else if (parent.getAncestors() != null) {
-            entity.setAncestors(parent.getAncestors() + "," + entity.getParentId());
-        } else {
-            entity.setAncestors(String.valueOf(entity.getParentId()));
-        }
-        return super.save(entity);
-    }
-
-    @Transactional(rollbackFor = Exception.class)
-    @Override
-    public boolean updateById(SysDept entity) {
-        // 修改后的父节点信息
-        SysDept newParentDept = baseMapper.selectById(entity.getParentId());
-        // 修改前的部门信息
-        SysDept oldDept = baseMapper.selectById(entity.getId());
-        if (newParentDept != null && oldDept != null) {
-            String newAncestors = newParentDept.getAncestors() + "," + newParentDept.getId();
-            String oldAncestors = oldDept.getAncestors();
-            entity.setAncestors(newAncestors);
-            updateDeptChildren(entity.getId(), newAncestors, oldAncestors);
-        }
-        return super.updateById(entity);
-    }
-
-    /**
-     * 修改子元素关系
-     *
-     * @param deptId 被修改的部门ID
-     * @param newAncestors 新的父ID集合
-     * @param oldAncestors 旧的父ID集合
-     */
-    public void updateDeptChildren(Long deptId, String newAncestors, String oldAncestors) {
-        List<SysDept> children = baseMapper.selectChildrenDeptById(deptId);
-        for (SysDept child : children) {
-            child.setAncestors(child.getAncestors().replace(oldAncestors, newAncestors));
-        }
-        if (children.size() > 0) {
-            baseMapper.updateDeptChildren(children);
-        }
-    }
-
-    /**
-     * 使用递归方法建树
-     * @param sysDeptList
-     * @return
-     */
-    public static List<SysDept> buildTree(List<SysDept> sysDeptList) {
-        List<SysDept> trees = new ArrayList<>();
-        for (SysDept sysDept : sysDeptList) {
-            if (0L == sysDept.getParentId()) {
-                trees.add(findChildren(sysDept, sysDeptList));
-            }
-        }
-        return trees;
-    }
-
-    /**
-     * 递归查找子节点
-     * @param sysDeptList
-     * @return
-     */
-    public static SysDept findChildren(SysDept sysDept, List<SysDept> sysDeptList) {
-        for (SysDept it : sysDeptList) {
-            if (sysDept.getId().equals(it.getParentId())) {
-                if (sysDept.getChildren() == null) {
-                    sysDept.setChildren(new ArrayList<>());
-                }
-                sysDept.getChildren().add(findChildren(it, sysDeptList));
-            }
-        }
+    public SysDept getById(Long id) {
+        SysDept sysDept = sysDeptMapper.getById(id);
         return sysDept;
     }
+
+    @Override
+    public List<SysDept> selectByCondition(SysDept sysDept) {
+        return sysDeptMapper.selectByCondition(sysDept);
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public SysDept save(SysDept sysDept) {
+        sysDeptMapper.insert(sysDept);
+        return sysDept;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public SysDept updateById(SysDept sysDept) {
+        sysDeptMapper.update(sysDept);
+        return sysDept;
+    }
+
+    @Override
+    public boolean removeById(Long id) {
+        return sysDeptMapper.deleteById(id) > 0;
+    }
+
+    @Transactional(rollbackFor = Exception.class)
+    @Override
+    public boolean removeByIds(List<Long> idList) {
+        return sysDeptMapper.deleteBatchIds(idList) > 0;
+    }
+
+    @Override
+    public List<TreeSelect> buildDeptTreeSelect(List<SysDept> depts) {
+        List<SysDept> deptTrees = buildDeptTree(depts);
+        return deptTrees.stream().map(TreeSelect::new).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Long> selectDeptListByRoleId(Long roleId) {
+        return sysDeptMapper.selectDeptListByRoleId(roleId);
+    }
+
+    /**
+     * 构建前端所需要树结构
+     *
+     * @param depts 部门列表
+     * @return 树结构列表
+     */
+    @Override
+    public List<SysDept> buildDeptTree(List<SysDept> depts) {
+        List<SysDept> returnList = new ArrayList<>();
+        List<Long> tempList = new ArrayList<>();
+        for (SysDept dept : depts) {
+            tempList.add(dept.getId());
+        }
+        for (Iterator<SysDept> iterator = depts.iterator(); iterator.hasNext(); ) {
+            SysDept dept = iterator.next();
+            // 如果是顶级节点, 遍历该父节点的所有子节点
+            if (!tempList.contains(dept.getParentId())) {
+                recursionFn(depts, dept);
+                returnList.add(dept);
+            }
+        }
+        if (returnList.isEmpty()) {
+            returnList = depts;
+        }
+        return returnList;
+    }
+
+    /**
+     * 递归列表
+     */
+    private void recursionFn(List<SysDept> list, SysDept t) {
+        // 得到子节点列表
+        List<SysDept> childList = getChildList(list, t);
+        t.setChildren(childList);
+        for (SysDept tChild : childList) {
+            if (hasChild(list, tChild)) {
+                recursionFn(list, tChild);
+            }
+        }
+    }
+
+    /**
+     * 得到子节点列表
+     */
+    private List<SysDept> getChildList(List<SysDept> list, SysDept t) {
+        List<SysDept> tlist = new ArrayList<SysDept>();
+        Iterator<SysDept> it = list.iterator();
+        while (it.hasNext()) {
+            SysDept n = it.next();
+            if (n.getParentId() != null && n.getParentId().longValue() == t.getId().longValue()) {
+                tlist.add(n);
+            }
+        }
+        return tlist;
+    }
+
+    /**
+     * 判断是否有子节点
+     */
+    private boolean hasChild(List<SysDept> list, SysDept t) {
+        return getChildList(list, t).size() > 0 ? true : false;
+    }
+
 }

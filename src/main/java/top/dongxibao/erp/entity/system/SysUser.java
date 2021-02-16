@@ -1,92 +1,88 @@
 package top.dongxibao.erp.entity.system;
 
-import com.baomidou.mybatisplus.annotation.TableField;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.experimental.Accessors;
+import lombok.ToString;
 import top.dongxibao.erp.common.BaseEntity;
 
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
 
 /**
- * <p>
  * 用户信息表
- * </p>
  *
  * @author Dongxibao
- * @date 2020-06-14
+ * @date 2021-01-05
  */
+@ApiModel("用户信息表")
 @Data
-@EqualsAndHashCode(callSuper = false)
-@Accessors(chain = true)
-@ApiModel(value="SysUser对象", description="用户信息表")
+@ToString(callSuper = true)
 public class SysUser extends BaseEntity {
-
-    private static final long serialVersionUID=1L;
-
-    @ApiModelProperty(value = "部门ID")
-    private Long deptId;
-
-    @NotEmpty(message = "登录账号不能为空")
-    @ApiModelProperty(value = "登录账号")
-    protected String username;
-
-    @ApiModelProperty(value = "用户昵称")
+    private static final long serialVersionUID = 1L;
+    /** 登录账号 */
+    @ApiModelProperty("登录账号")
+    @NotBlank(message = "登录账号不能为空")
+    private String username;
+    /** 用户昵称 */
+    @ApiModelProperty("用户昵称")
+    @NotBlank(message = "用户昵称不能为空")
     private String nickName;
-
-    @NotEmpty(message = "密码不能为空")
-    @ApiModelProperty(value = "密码")
+    /** 密码 */
+    @ApiModelProperty("密码")
+    @NotBlank(message = "密码不能为空")
     private String password;
-
+    @JsonSerialize(using = ToStringSerializer.class)
+    /** 部门ID */
+    @ApiModelProperty("部门ID")
+    private Long deptId;
+    @JsonSerialize(using = ToStringSerializer.class)
+    /** 岗位ID */
+    @ApiModelProperty("岗位ID")
+    private Long postId;
+    /** 用户邮箱 */
+    @ApiModelProperty("用户邮箱")
     @Email(message = "邮箱格式不正确")
-    @ApiModelProperty(value = "用户邮箱")
     private String email;
-
+    /** 手机号码 */
+    @ApiModelProperty("手机号码")
     @NotEmpty(message = "手机号码不能为空")
-    @ApiModelProperty(value = "手机号码")
     private String phone;
-
-    @ApiModelProperty(value = "性别(0未知;1男;2女)")
+    /** 性别(0未知;1男;2女) */
+    @ApiModelProperty("性别(0未知;1男;2女)")
+    @JsonSerialize(using = ToStringSerializer.class)
     private Integer sex;
-
-    @ApiModelProperty(value = "头像")
+    /** 头像 */
+    @ApiModelProperty("头像")
     private String avatar;
-
-    @ApiModelProperty(value = "帐号状态:0正常,1禁用")
+    /** 帐号状态:1正常,0禁用 */
+    @ApiModelProperty("帐号状态:1正常,0禁用")
+    @JsonSerialize(using = ToStringSerializer.class)
     private Integer status;
 
-    /** 角色对象 */
-    @ApiModelProperty(value = "角色对象")
-    @TableField(exist = false)
+    /** 冗余字段 */
+    /** 角色对象List */
+    @ApiModelProperty("角色对象List")
     private List<SysRole> roleList;
-
-    /** 角色组 */
-    @ApiModelProperty(value = "角色组")
-    @TableField(exist = false)
+    /** 角色id数组 */
+    @ApiModelProperty("角色id数组")
     private Long[] roleIds;
-
-    /** 岗位组 */
-    @ApiModelProperty(value = "岗位组")
-    @TableField(exist = false)
-    private Long[] postIds;
-
-    /** 角色对象 */
-    @ApiModelProperty(value = "角色对象")
-    @TableField(exist = false)
-    private List<SysRole> roles;
-    /** 部门 */
-    @ApiModelProperty(value = "部门")
-    @TableField(exist = false)
-    private SysDept dept;;
+    private String deptName;
+    private String leader;
+    private Integer deptStatus;
 
     @JsonIgnore
     public boolean isAdmin() {
-        return username != null && "admin".equalsIgnoreCase(this.username);
+        return isAdmin(this.getId());
     }
-
+    @JsonIgnore
+    public static boolean isAdmin(Long userId) {
+        return userId != null && 1L == userId;
+    }
 }
