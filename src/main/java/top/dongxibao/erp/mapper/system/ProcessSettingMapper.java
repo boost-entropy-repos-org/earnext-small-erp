@@ -67,4 +67,6 @@ public interface ProcessSettingMapper {
      * @return
      */
     ProcessSetting selectByModuleId(@Param("moduleId") Long moduleId);
+
+    ProcessSetting existByModuleId(ProcessSetting processSetting);
 }

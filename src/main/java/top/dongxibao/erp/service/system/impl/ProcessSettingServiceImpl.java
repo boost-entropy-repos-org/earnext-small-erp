@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import top.dongxibao.erp.entity.system.ProcessSetting;
+import top.dongxibao.erp.exception.ServiceException;
 import top.dongxibao.erp.mapper.system.ProcessSettingMapper;
 import top.dongxibao.erp.service.system.ProcessSettingService;
 
@@ -34,6 +35,10 @@ public class ProcessSettingServiceImpl implements ProcessSettingService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public ProcessSetting save(ProcessSetting processSetting) {
+        ProcessSetting exist = processSettingMapper.existByModuleId(processSetting);
+        if (exist != null) {
+            throw new ServiceException("关联模块id：" + processSetting.getModuleId() + " 已存在！");
+        }
         processSettingMapper.insert(processSetting);
         return processSetting;
     }
@@ -41,6 +46,10 @@ public class ProcessSettingServiceImpl implements ProcessSettingService {
     @Transactional(rollbackFor = Exception.class)
     @Override
     public ProcessSetting updateById(ProcessSetting processSetting) {
+        ProcessSetting exist = processSettingMapper.existByModuleId(processSetting);
+        if (exist != null) {
+            throw new ServiceException("关联模块id：" + processSetting.getModuleId() + " 已存在！");
+        }
         processSettingMapper.update(processSetting);
         return processSetting;
     }

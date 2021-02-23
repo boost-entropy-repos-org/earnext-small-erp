@@ -22,7 +22,7 @@ public class SubmitVariablesVO {
     /** 模块id　**/
     @NotBlank(message = "模块id不能为空")
     @ApiModelProperty("模块id")
-    private Long moduleId;
+    private String moduleId;
     /** 模块名称 **/
     @ApiModelProperty("模块名称")
     private String moduleName;

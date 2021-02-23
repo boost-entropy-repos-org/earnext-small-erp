@@ -62,7 +62,7 @@ public class ActivitiServiceImpl implements ActivitiService {
     @Override
     public String submit(SubmitVariablesVO submitVariables) {
         // 1.查询关联表找到key
-        ProcessSetting processSetting = processSettingMapper.selectByModuleId(submitVariables.getModuleId());
+        ProcessSetting processSetting = processSettingMapper.selectByModuleId(Long.valueOf(submitVariables.getModuleId()));
         if (processSetting == null) {
             throw new ServiceException("请联系管理员配置[业务模块关联流程]");
         }
@@ -79,10 +79,10 @@ public class ActivitiServiceImpl implements ActivitiService {
         ProcessInstance processInstance = runtimeService.startProcessInstanceByKey(processSetting.getProcessDefinitionKey(), variables);
         // 3.修改业务状态
         String updateSql = "update " + submitVariables.getTableName() +
-                " set process_instance_id = " + processInstance.getId()
-                + "," + "placed = " + ApproveStatus.SUBMITTED.code
-                + "," + "update_time = " + new Date()
-                + "," + "update_by = " + SecurityUtils.getCurrentUsername()
+                " set process_instance_id = '" + processInstance.getId() + "'"
+                + "," + "placed = '" + ApproveStatus.SUBMITTED.code + "'"
+                + "," + "update_time = " + "sysdate()"
+                + "," + "update_by = '" + SecurityUtils.getCurrentUsername() + "'"
                 + " where id = " + submitVariables.getBusinessId();
         activitiMapper.update(updateSql);
         return processInstance.getId();
@@ -121,16 +121,16 @@ public class ActivitiServiceImpl implements ActivitiService {
 
             taskService.resolveTask(taskId, variables);
             taskService.claim(taskId, SecurityUtils.getCurrentUsername());
-            taskService.complete(taskId, variables);
+//            taskService.complete(taskId, variables);
 
             runtimeService.deleteProcessInstance(processInstanceId, "当前审批人驳回");
         }
         String businessId = submitVariables.get(WorkflowConstants.businessId).toString();
         String tableName = submitVariables.get(WorkflowConstants.tableName).toString();
         String updateSql = "update " + tableName +
-                " set placed = " + placed
-                + "," + "update_time = " + new Date()
-                + "," + "update_by = " + SecurityUtils.getCurrentUsername()
+                " set placed = '" + placed + "'"
+                + "," + "update_time = " + "sysdate()"
+                + "," + "update_by = '" + SecurityUtils.getCurrentUsername() + "'"
                 + " where id = " + businessId
                 + " and process_instance_id = " + processInstanceId;
         activitiMapper.update(updateSql);

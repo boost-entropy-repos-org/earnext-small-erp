@@ -7,6 +7,7 @@ import org.activiti.engine.history.HistoricTaskInstance;
 import org.activiti.engine.task.TaskInfo;
 import top.dongxibao.erp.constant.WorkflowConstants;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
 
@@ -17,7 +18,7 @@ import java.util.Map;
  */
 @ApiModel("Activiti - 任务信息")
 @Data
-public class ActivitiTaskInfoVO {
+public class ActivitiTaskInfoVO implements Serializable {
 
     /**
      * DB id of the task.
@@ -139,7 +140,7 @@ public class ActivitiTaskInfoVO {
     private String businessNo;
 
     @ApiModelProperty("模块Id")
-    private Long moduleId;
+    private String moduleId;
 
     @ApiModelProperty("发起人")
     private String initiator;
@@ -169,7 +170,7 @@ public class ActivitiTaskInfoVO {
         this.processVariables = processVariables;
         if (processVariables != null) {
             this.initiator = processVariables.get(WorkflowConstants.initiator) != null ? processVariables.get(WorkflowConstants.initiator).toString() : "";
-            this.moduleId = processVariables.get(WorkflowConstants.moduleId) != null ? (Long) processVariables.get(WorkflowConstants.moduleId) : 0L;
+            this.moduleId = processVariables.get(WorkflowConstants.moduleId) != null ? (String) processVariables.get(WorkflowConstants.moduleId) : "0";
             this.moduleName = processVariables.get(WorkflowConstants.moduleName) != null ? processVariables.get(WorkflowConstants.moduleName).toString() : "";
             this.businessNo = processVariables.get(WorkflowConstants.businessNo) != null ? processVariables.get(WorkflowConstants.businessNo).toString() : "";
         }
@@ -198,7 +199,7 @@ public class ActivitiTaskInfoVO {
         this.processVariables = processVariables;
         if (processVariables != null) {
             this.initiator = processVariables.get(WorkflowConstants.initiator) != null ? processVariables.get(WorkflowConstants.initiator).toString() : "";
-            this.moduleId = processVariables.get(WorkflowConstants.moduleId) != null ? (Long) processVariables.get(WorkflowConstants.moduleId) : 0L;
+            this.moduleId = processVariables.get(WorkflowConstants.moduleId) != null ? (String) processVariables.get(WorkflowConstants.moduleId) : "0";
             this.moduleName = processVariables.get(WorkflowConstants.moduleName) != null ? processVariables.get(WorkflowConstants.moduleName).toString() : "";
             this.businessNo = processVariables.get(WorkflowConstants.businessNo) != null ? processVariables.get(WorkflowConstants.businessNo).toString() : "";
         }
